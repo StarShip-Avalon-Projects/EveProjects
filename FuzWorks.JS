@@ -58,7 +58,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id) {
     }
   
 // Capture overflow buffer
-  if(safe_id_set.length < 0)
+  if(safe_id_set.length > 0)
   {
   fuzz_price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
   result = result.concat( safe_id_set.map(function(type_id) { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; }))
