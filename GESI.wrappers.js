@@ -2526,9 +2526,9 @@ function getAuthenticatedCharacterNames()
  * @return
  * @customfunction
  */
-function invokeMultiple(functionName, characterNames, [params])
+function invokeMultiple(functionName, characterNames, params)
 {
-  return GESI.invokeMultiple(functionName, characterNames, [params]);
+  return GESI.invokeMultiple(functionName, characterNames, params);
 }
 
 
@@ -2540,9 +2540,9 @@ function invokeMultiple(functionName, characterNames, [params])
  * @return The data from the provided functionName
  * @customfunction
  */
-function invoke(functionName, [params])
+function invoke(functionName, params)
 {
-  return GESI.invoke(functionName, [params]);
+  return GESI.invoke(functionName, params);
 }
 
 /**
