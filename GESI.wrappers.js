@@ -1,9 +1,67 @@
 /**
- * Taking from GESI Github functions.ts and converted to Google Appt Script.
- * Author BlackSmoke
- * Modified by CJ Kilman
+ * GESI.Wrappers V.02
+ * 
+ * An interface to the GSEI Library when the Library is not available in the google store.
+ * 
+ * Instructions:
+ * 
+ * Install:
+ * 1 Copy this file to the app scripts editor
+ * 2 Somewhere in OnOpen() add a call to onGESIOpen() trigger. This will install the GESI UI Menu options
+ * 
+ * Removal:
+ * Delete this file and remove the onGESIOpen() call from onOpen() trigger;
+ * 
+ * Author BlackSmoke https://github.com/Blacksmoke16/GESI/
+ * Modified by CJ Kilman https://github.com/StarShip-Avalon-Projects/EveProjects/tree/main
  */
 
+
+// region Startup
+
+/**
+ * onOpen() procedure for adding GESI Menu to Sheet
+ * Call this function from any onOpen() 
+ *
+ */
+function onGESIOpen()
+ { 
+  var ui = SpreadsheetApp.getUi();
+    ui.createMenu("GESI")
+    .addItem('Authorize Character', 'showSSOModal')
+    .addItem('Deauthorize Character', 'deauthorizeCharacter')
+    .addItem('Set Main Character', 'setMainCharacter')
+    .addItem('Enable Sheet Auth Storage', 'setAuthStorage')
+    .addItem('Reset', 'reset')
+    .addToUi();
+}
+
+function showSSOModal()
+{
+  return GESI.showSSOModal();
+}
+function deauthorizeCharacter()
+{
+  return GESI.deauthorizeCharacter();
+}
+function getMainCharacter()
+{
+  return GESI.getMainCharacter();
+}
+function setMainCharacter()
+{
+  return GESI.setMainCharacter();
+}
+function setAuthStorage()
+{
+  return GESI.setAuthStorage();
+}
+function reset()
+{
+  return GESI.reset();
+}
+
+// endregion
 
 /**
  * List all active player alliances
@@ -2388,7 +2446,7 @@ function universe_types_type(type_id, languagename, show_column_headings = true,
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function wars(max_war_id, show_column_headings = true, version = "v1")
+function wars(max_war_id, show_column_headings = true, version = "v2")
  {
   return GESI.invoke('wars', { max_war_id, show_column_headings, version })
 }
@@ -2401,7 +2459,7 @@ function wars(max_war_id, show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function wars_war(war_id, show_column_headings = true, version = "v1")
+function wars_war(war_id, show_column_headings = true, version = "v2")
  {
   if (!war_id) throw new Error(`war_id is required`);
   return GESI.invoke('wars_war', { war_id, show_column_headings, version })
@@ -2420,3 +2478,82 @@ function wars_war_killmails(war_id, show_column_headings = true, version = "v1")
   if (!war_id) throw new Error(`war_id is required`);
   return GESI.invoke('wars_war_killmails', { war_id, show_column_headings, version })
 }
+
+
+/** Built in GSEI functions */
+
+
+/**
+ * @return {string[] | null} An array of character names that have authenticated, or null if none have been.
+ * @customfunction
+ */
+function getAuthenticatedCharacterNames()
+{
+  return GESI.getAuthenticatedCharacterNames();
+}
+
+/**
+ * Parses array data into more readable format
+ *
+ * @param {string} endpointName (Required) Name of the endpoint data to be parsed is from.
+ * @param {string} columnName (Required) Name of the column to be parsed.
+ * @param {string} data (Required) Cell that holds the data to be parsed.
+ * @param {boolean} show_column_headers Default: True, Boolean if column headings should be listed or not.
+ * @return Parsed array data.
+ * @customfunction
+ */
+ function parseArray(endpointName, columnName, data, show_column_headers = true)
+ {
+  return GESI.parseArray(endpointName, columnName, data, show_column_headers);
+ }
+
+/**
+ * @param {string} characterName The name of the character
+ * @return {IAuthenticatedCharacter} A metadata object for this character
+ * @customfunction
+ */
+ function getCharacterData(characterName)
+ {
+   return GESI.getCharacterData(characterName);
+ }
+
+ /**
+ * Returns the data from the provided functionName for each character as one list for use within a sheet.
+ *
+ * @param {string} functionName The name of the endpoint that should be invoked
+ * @param {string | string[]} characterNames A single, comma separated, or vertical range of character names
+ * @param {object} params Any extra parameters that should be included in the ESI call
+ * @return
+ * @customfunction
+ */
+function invokeMultiple(functionName, characterNames, [params])
+{
+  return GESI.invokeMultiple(functionName, characterNames, [params]);
+}
+
+
+/**
+ * Return the sheets formatted data related for the given functionName.
+ *
+ * @param {string} functionName The name of the endpoint that should be invoked
+ * @param {object} params Any extra parameters that should be included in the ESI call
+ * @return The data from the provided functionName
+ * @customfunction
+ */
+function invoke(functionName, [params])
+{
+  return GESI.invoke(functionName, [params]);
+}
+
+/**
+ * Returns an ESIClient for the given characterName.
+ * Can be used by advanced users for custom functions/scripts.
+ *
+ * @param characterName
+ * @return {ESIClient}
+ * @customfunction
+ */
+ function getClient(characterName)
+ {
+   return GESI.getClient(characterName);
+ }
