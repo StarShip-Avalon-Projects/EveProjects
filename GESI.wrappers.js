@@ -1439,7 +1439,7 @@ function corporations_corporation_starbases_starbase(system_id, starbase_id,name
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function corporations_corporation_structures(languagename,name, show_column_headings = true, version = "v3")
+function corporations_corporation_structures(language, name, show_column_headings = true, version = "v3")
  {
   return GESI.invoke('corporations_corporation_structures', { language, name, show_column_headings, version })
 }
