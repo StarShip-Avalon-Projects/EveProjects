@@ -1,67 +1,23 @@
 /**
- * GESI.Wrappers V.02
+ * GESI.Wrappers V.03
  * 
- * An interface to the GSEI Library when the Library is not available in the google store.
+ * Wrapper Functions for Existing GSI Library in Google Scripts Editor
+ * Not recodmended for new Sheets that need new characters to be authorized.
+ * Eve Character Authentication with SSO is Unavialble. Please wait for Google to approve GESI to the app store.
  * 
  * Instructions:
  * 
  * Install:
- * 1 Copy this file to the app scripts editor
- * 2 Somewhere in OnOpen() add a call to onGESIOpen() trigger. This will install the GESI UI Menu options
+ * Copy this file to the app scripts editor
  * 
  * Removal:
- * Delete this file and remove the onGESIOpen() call from onOpen() trigger;
+ * Delete this file.
  * 
  * Author BlackSmoke https://github.com/Blacksmoke16/GESI/
  * Modified by CJ Kilman https://github.com/StarShip-Avalon-Projects/EveProjects/tree/main
  */
 
-
-// region Startup
-
-/**
- * onOpen() procedure for adding GESI Menu to Sheet
- * Call this function from any onOpen() 
- *
- */
-function onGESIOpen()
- { 
-  var ui = SpreadsheetApp.getUi();
-    ui.createMenu("GESI")
-    .addItem('Authorize Character', 'showSSOModal')
-    .addItem('Deauthorize Character', 'deauthorizeCharacter')
-    .addItem('Set Main Character', 'setMainCharacter')
-    .addItem('Enable Sheet Auth Storage', 'setAuthStorage')
-    .addItem('Reset', 'reset')
-    .addToUi();
-}
-
-function showSSOModal()
-{
-  return GESI.showSSOModal();
-}
-function deauthorizeCharacter()
-{
-  return GESI.deauthorizeCharacter();
-}
-function getMainCharacter()
-{
-  return GESI.getMainCharacter();
-}
-function setMainCharacter()
-{
-  return GESI.setMainCharacter();
-}
-function setAuthStorage()
-{
-  return GESI.setAuthStorage();
-}
-function reset()
-{
-  return GESI.reset();
-}
-
-// endregion
+// functions.ts
 
 /**
  * List all active player alliances
@@ -70,7 +26,7 @@ function reset()
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function alliances(show_column_headings = true, version = "v1")
+ function alliances(show_column_headings = true, version = "v1")
  {
   return GESI.invoke('alliances', { show_column_headings, version })
 }
@@ -1439,7 +1395,7 @@ function corporations_corporation_starbases_starbase(system_id, starbase_id,name
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function corporations_corporation_structures(languagename,name, show_column_headings = true, version = "v3")
+function corporations_corporation_structures(language,name, show_column_headings = true, version = "v3")
  {
   return GESI.invoke('corporations_corporation_structures', { language, name, show_column_headings, version })
 }
@@ -2479,10 +2435,11 @@ function wars_war_killmails(war_id, show_column_headings = true, version = "v1")
   return GESI.invoke('wars_war_killmails', { war_id, show_column_headings, version })
 }
 
+// end functions.ts
 
-/** Built in GSEI functions */
 
 
+// gesi.ts
 /**
  * @return {string[] | null} An array of character names that have authenticated, or null if none have been.
  * @customfunction
@@ -2526,9 +2483,9 @@ function getAuthenticatedCharacterNames()
  * @return
  * @customfunction
  */
-function invokeMultiple(functionName, characterNames, [params])
+function invokeMultiple(functionName, characterNames,parameters,params)
 {
-  return GESI.invokeMultiple(functionName, characterNames, [params]);
+  return GESI.invokeMultiple(functionName, characterNames,parameters,{params});
 }
 
 
@@ -2540,9 +2497,9 @@ function invokeMultiple(functionName, characterNames, [params])
  * @return The data from the provided functionName
  * @customfunction
  */
-function invoke(functionName, [params])
+function invoke(functionName, characterNames,parameters,params)
 {
-  return GESI.invoke(functionName, [params]);
+  return GESI.invoke(functionName, characterNames,parameters,{params});
 }
 
 /**
@@ -2557,3 +2514,5 @@ function invoke(functionName, [params])
  {
    return GESI.getClient(characterName);
  }
+
+// end GESI.ts
