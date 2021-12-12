@@ -720,7 +720,7 @@ function characters_character_roles(name, show_column_headings = true, version =
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function characters_character_search(search, categories, languagename, strict,name, show_column_headings = true, version = "v2")
+function characters_character_search(search, categories, language, strict,name, show_column_headings = true, version = "v2")
  {
   if (!search) throw new Error(`search is required`);
  if (!categories) throw new Error(`categories is required`);
@@ -1592,7 +1592,7 @@ function fleets_fleet(fleet_id,name, show_column_headings = true, version = "v1"
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function fleets_fleet_members(fleet_id, languagename,name, show_column_headings = true, version = "v1")
+function fleets_fleet_members(fleet_id, language,name, show_column_headings = true, version = "v1")
  {
   if (!fleet_id) throw new Error(`fleet_id is required`);
   return GESI.invoke('fleets_fleet_members', { fleet_id, language, name, show_column_headings, version })
@@ -1608,7 +1608,7 @@ function fleets_fleet_members(fleet_id, languagename,name, show_column_headings 
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function fleets_fleet_wings(fleet_id, languagename,name, show_column_headings = true, version = "v1")
+function fleets_fleet_wings(fleet_id, language,name, show_column_headings = true, version = "v1")
  {
   if (!fleet_id) throw new Error(`fleet_id is required`);
   return GESI.invoke('fleets_fleet_wings', { fleet_id, language, name, show_column_headings, version })
@@ -1730,7 +1730,7 @@ function industry_systems(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function insurance_prices(languagename, show_column_headings = true, version = "v1")
+function insurance_prices(language, show_column_headings = true, version = "v1")
  {
   return GESI.invoke('insurance_prices', { language, show_column_headings, version })
 }
@@ -1786,7 +1786,7 @@ function markets_groups(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function markets_groups_market_group(market_group_id, languagename, show_column_headings = true, version = "v1")
+function markets_groups_market_group(market_group_id, language, show_column_headings = true, version = "v1")
  {
   if (!market_group_id) throw new Error(`market_group_id is required`);
   return GESI.invoke('markets_groups_market_group', { market_group_id, language, show_column_headings, version })
@@ -1887,7 +1887,7 @@ function opportunities_groups(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function opportunities_groups_group(group_id, languagename, show_column_headings = true, version = "v1")
+function opportunities_groups_group(group_id, language, show_column_headings = true, version = "v1")
  {
   if (!group_id) throw new Error(`group_id is required`);
   return GESI.invoke('opportunities_groups_group', { group_id, language, show_column_headings, version })
@@ -1982,7 +1982,7 @@ function sovereignty_structures(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_ancestries(languagename, show_column_headings = true, version = "v1")
+function universe_ancestries(language, show_column_headings = true, version = "v1")
  {
   return GESI.invoke('universe_ancestries', { language, show_column_headings, version })
 }
@@ -2009,7 +2009,7 @@ function universe_asteroid_belts_asteroid_belt(asteroid_belt_id, show_column_hea
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_bloodlines(languagename, show_column_headings = true, version = "v1")
+function universe_bloodlines(language, show_column_headings = true, version = "v1")
  {
   return GESI.invoke('universe_bloodlines', { language, show_column_headings, version })
 }
@@ -2035,7 +2035,7 @@ function universe_categories(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_categories_category(category_id, languagename, show_column_headings = true, version = "v1")
+function universe_categories_category(category_id, language, show_column_headings = true, version = "v1")
  {
   if (!category_id) throw new Error(`category_id is required`);
   return GESI.invoke('universe_categories_category', { category_id, language, show_column_headings, version })
@@ -2062,7 +2062,7 @@ function universe_constellations(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_constellations_constellation(constellation_id, languagename, show_column_headings = true, version = "v1")
+function universe_constellations_constellation(constellation_id, language, show_column_headings = true, version = "v1")
  {
   if (!constellation_id) throw new Error(`constellation_id is required`);
   return GESI.invoke('universe_constellations_constellation', { constellation_id, language, show_column_headings, version })
@@ -2076,7 +2076,7 @@ function universe_constellations_constellation(constellation_id, languagename, s
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_factions(languagename, show_column_headings = true, version = "v1")
+function universe_factions(language, show_column_headings = true, version = "v1")
  {
   return GESI.invoke('universe_factions', { language, show_column_headings, version })
 }
@@ -2128,7 +2128,7 @@ function universe_groups(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_groups_group(group_id, languagename, show_column_headings = true, version = "v1")
+function universe_groups_group(group_id, language, show_column_headings = true, version = "v1")
  {
   if (!group_id) throw new Error(`group_id is required`);
   return GESI.invoke('universe_groups_group', { group_id, language, show_column_headings, version })
@@ -2143,7 +2143,7 @@ function universe_groups_group(group_id, languagename, show_column_headings = tr
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_ids(names, languagename, show_column_headings = true, version = "v1")
+function universe_ids(names, language, show_column_headings = true, version = "v1")
  {
   if (!names) throw new Error(`names is required`);
   return GESI.invoke('universe_ids', { names, language, show_column_headings, version })
@@ -2199,7 +2199,7 @@ function universe_planets_planet(planet_id, show_column_headings = true, version
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_races(languagename, show_column_headings = true, version = "v1")
+function universe_races(language, show_column_headings = true, version = "v1")
  {
   return GESI.invoke('universe_races', { language, show_column_headings, version })
 }
@@ -2225,7 +2225,7 @@ function universe_regions(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_regions_region(region_id, languagename, show_column_headings = true, version = "v1")
+function universe_regions_region(region_id, language, show_column_headings = true, version = "v1")
  {
   if (!region_id) throw new Error(`region_id is required`);
   return GESI.invoke('universe_regions_region', { region_id, language, show_column_headings, version })
@@ -2361,7 +2361,7 @@ function universe_systems(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_systems_system(system_id, languagename, show_column_headings = true, version = "v3")
+function universe_systems_system(system_id, language, show_column_headings = true, version = "v3")
  {
   if (!system_id) throw new Error(`system_id is required`);
   return GESI.invoke('universe_systems_system', { system_id, language, show_column_headings, version })
@@ -2388,7 +2388,7 @@ function universe_types(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_types_type(type_id, languagename, show_column_headings = true, version = "v2")
+function universe_types_type(type_id, language, show_column_headings = true, version = "v2")
  {
   if (!type_id) throw new Error(`type_id is required`);
   return GESI.invoke('universe_types_type', { type_id, language, show_column_headings, version })
