@@ -2143,7 +2143,7 @@ function universe_groups_group(group_id, languagename, show_column_headings = tr
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_ids(names, languagename, show_column_headings = true, version = "v1")
+function universe_ids(names, language, show_column_headings = true, version = "v1")
  {
   if (!names) throw new Error(`names is required`);
   return GESI.invoke('universe_ids', { names, language, show_column_headings, version })
@@ -2199,7 +2199,7 @@ function universe_planets_planet(planet_id, show_column_headings = true, version
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_races(languagename, show_column_headings = true, version = "v1")
+function universe_races(language, show_column_headings = true, version = "v1")
  {
   return GESI.invoke('universe_races', { language, show_column_headings, version })
 }
@@ -2225,7 +2225,7 @@ function universe_regions(show_column_headings = true, version = "v1")
  * @param {string} version - Which ESI version to use for the request.
  * @customfunction
  */
-function universe_regions_region(region_id, languagename, show_column_headings = true, version = "v1")
+function universe_regions_region(region_id, language, show_column_headings = true, version = "v1")
  {
   if (!region_id) throw new Error(`region_id is required`);
   return GESI.invoke('universe_regions_region', { region_id, language, show_column_headings, version })
