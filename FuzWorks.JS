@@ -5,6 +5,8 @@
 * Generic API function to get a list of minimal prices for an array of type_id's
 * @param {range} A vertical range of type_ids.
 * @param {market_hub_id} market region ID, Defaults to Jita:60003760
+* @param {order_type} sell or buy
+* @param {order_level} min,max,average,mean
 * @return minSell for each type_id. This can be configured differently.
 * @customfunction
 * Author: unknown
@@ -12,8 +14,14 @@
 */
 function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type = "sell",order_level = "min") {
     if (!type_ids) throw 'type_ids is required';
-      
-  
+    
+    // filter Blank type_ids
+    type_ids = type_ids.filter(function(e){ return e === 0 || e });
+    
+    //Make sure Market Hub is Valid
+    isNaN(market_hub_id)
+     market_hub_id = 60003760;
+
       /*
       * Configuration Section
       */
@@ -98,6 +106,8 @@ function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", 
     default:
         market_hub = 60003760;
     }
+    
+    //deal with defaults on most used order types
     if(order_level==null)
     {
       switch(order_type){
