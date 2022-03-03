@@ -1,5 +1,3 @@
-
-
 /**
 * MarketStat API for the given types
 *
@@ -13,14 +11,14 @@
 function marketStatData(type_ids, location_type, location_id, order_type = "sell", order_level = "min") {
     // Safety net 
     if (!type_ids) throw 'type_ids is required';
-    if (!region) throw 'region id is required';
+    if (!location_id) throw 'location id is required';
     // Configuration Section
     let location = "";
     switch(location_type){
-    case "region":
+    case "Region":
         location = "regionlimit=" + location_id;
         break;
-     case "system":
+     case "System":
         location = "usesystem=" + location_id;
         break;
       default:
@@ -40,11 +38,10 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
       {
       result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
       }
-      console.log(result);
       return result;
     } 
     // Safe request buffer stuff
-   
+  
     let safe_id_set= [];
     let safe_item_index = 0; 
     // Start running loop for safe array
@@ -75,5 +72,3 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
     }
     return result;
   }
-
-
