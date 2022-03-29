@@ -4,11 +4,12 @@ These scripts are for Google Sheets to interface with Fuzworks API
 Free to use as you want as long as credit is given when due.
 
 # Eve SDE Importer
-Fuzworks has a system that converts the Eve SDE package into useable formats. 
+[Fuzworks](https://www.fuzzwork.co.uk/2021/07/17/understanding-the-eve-online-sde-1/) has a system that converts the Eve SDE package into useable formats. 
 This script downloads CSV formats and updates SDE Tables used in Google Sheets making this script a good companion with GESI.
 
 To use Copy EveSdeImport.js to the Google Sheet Script editor (or Clasp for local editing).
 Then its just a matter of setting up the configuration.
+
 ```
 function importSDE()
 {
