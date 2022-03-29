@@ -3,6 +3,54 @@ These scripts are for Google Sheets to interface with Fuzworks API
 
 Free to use as you want as long as credit is given when due.
 
+# Eve SDE Importer
+Fuzworks has a system that converts the Eve SDE package into useable formats. 
+This script downloads CSV formats and updates SDE Tables used in Google Sheets making this script a good companion with GESI.
+
+To use Copy EveSdeImport.js to the Google Sheet Script editor (or Clasp for local editing).
+Then its just a matter of setting up the configuration.
+```
+function importSDE()
+{
+    // Display an alert box with a title, message, input field, and "Yes" and "No" buttons. The
+    // user can also close the dialog by clicking the close button in its title bar.
+    var ui = SpreadsheetApp.getUi();
+
+    var response = ui.alert('Updating the SDE', 
+        'Updating the SDE may take several minutes. In the meantime do not close the window otherwise you will have to restart. Continue?',
+        ui.ButtonSet.YES_NO);
+
+        
+    // Process the user's response.
+    if (response == ui.Button.YES) {
+    SpreadsheetApp.flush()
+    const sdePages = [
+    /**   new SdePage(
+          "SDE_sample",
+          "sample.csv",
+          [ "sample headers", "These are not required",]
+          ),*
+        new SdePage(
+        "SDE_invTypes",
+        "invTypes.csv",
+          /** Optional headers,  
+           * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
+
+          [ "typeID","groupID","typeName","mass","volume"]
+          ),
+      ];
+      sdePages.forEach(buildSDEs);
+
+
+    } else if (response == ui.Button.NO) {
+        ui.alert('SDE unchanged.');
+    } else {
+        ui.alert('SDE unchanged.');
+    }
+
+  }
+```
+
 # GESI wrappers
 This will enable existing google sheets with Eve Authorized characters to work.
 They're not in tended for New Sheets or Adding new characters to the sheet as the Eve SSO is currently broke.
