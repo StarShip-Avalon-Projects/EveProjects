@@ -11,6 +11,14 @@ To use Copy EveSdeImport.js to the Google Sheet Script editor (or Clasp for loca
 Then its just a matter of setting up the configuration.
 
 ```
+/** Sample add menu option */
+function onOpen() {
+    var ui = SpreadsheetApp.getUi();
+    // Or DocumentApp or FormApp.
+    ui.createMenu('Sheet Tools')
+        .addItem('Update SDE Data', 'importSDE')
+        .addToUi();
+  }
 function importSDE()
 {
     // Display an alert box with a title, message, input field, and "Yes" and "No" buttons. The
