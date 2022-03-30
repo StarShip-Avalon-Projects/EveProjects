@@ -10,7 +10,7 @@ This script downloads CSV formats and updates SDE Tables used in Google Sheets m
 To use Copy EveSdeImport.js to the Google Sheet Script editor (or Clasp for local editing).
 Then its just a matter of setting up the configuration.
 
-```
+```js
 /** Sample add menu option */
 function onOpen() {
     var ui = SpreadsheetApp.getUi();
