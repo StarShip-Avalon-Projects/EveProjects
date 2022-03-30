@@ -38,18 +38,18 @@ function importSDE()
           "SDE_sample",
           "sample.csv",
           [ "sample headers", "These are not required",]
-          ),*
+          ),
+          */
         new SdePage(
         "SDE_invTypes",
         "invTypes.csv",
           /** Optional headers,  
-           * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
-
+           * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster.
+           */
           [ "typeID","groupID","typeName","mass","volume"]
-          ),
+          ) //,
       ];
-      sdePages.forEach(buildSDEs);
-
+      sdePages.forEach(page => buildSDEs(page));
 
     } else if (response == ui.Button.NO) {
         ui.alert('SDE unchanged.');
