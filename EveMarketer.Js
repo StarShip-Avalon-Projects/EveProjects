@@ -9,11 +9,23 @@
 * @return result for each type_id. This can be configured differently.
 * @customfunction
 */
-function marketStatData(type_ids, location_type, location_id, order_type = "sell", order_level = "min") {
-  // Safety net 
-  if (!type_ids) throw 'type_ids is required';
+function marketStatData(type_ids, location_type, location_id, order_type = null, order_level = null) {
   if (!location_id) throw 'location id is required';
+
+  if (!type_ids) throw 'type_ids is required';
   if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
+  type_ids = type_ids.filter(Number) ;
+  
+  if(order_type == null &&  order_level.toLowerCase() == "max") order_type = "buy";
+  if(order_type == null &&  order_level.toLowerCase() == "min") order_type = "sell";
+  if(order_type.toLowerCase() == "buy" &&  order_level == null) order_type = "buy";
+  if(order_type.toLowerCase() == "sell" &&  order_level == null) order_type = "min";
+
+  if(order_type == null &&  order_level == null){
+    order_type = "sell";
+    order_level = "min";
+  }
+
   // Configuration Section
   let location = "";
   switch(location_type.toLowerCase()){
@@ -28,7 +40,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
   }
 
   const service_url = "https://api.evemarketer.com/ec/marketstat/json?&" + location +"&typeid=";
-  const safe_item_limit = 150; // The limit for MarketStat is 200 for each fetch
+  const safe_item_limit = 200; // The limit for MarketStat is 200 for each fetch
 
    let result = [];
 
@@ -39,7 +51,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+            result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -63,7 +75,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
               {
                 try
                 {
-                    result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+                    result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
                 }
                 catch(error) // Value not on market, Leave Blank cell
                 {
@@ -84,7 +96,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+            result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
         }
         catch(error) // Value not on market, Leave Blank cell
         {

@@ -276,19 +276,25 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
   // Return the parsed data.
   return (arrData);
 }
+
+/**
+ * This test the basic functionality
+ *
+ */
 function testSDE()
 {
+
   const sdePages = [
     /**   new SdePage(
           "SDE_sample",
           "sample.csv",
-          [ "sample headers", "These are not required",]
+          [ "sample headers", "leave null to grab every column",]
           ),*/
         new SdePage(
         "SDE_invTypes",
         "invTypes.csv",
         /** Optional headers,  
-          * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
+          * invTypes is 100+ megabytes. Select coumns needed to help it laod faster. 
           */
           [ "typeID","groupID","typeName"]
           )
@@ -309,12 +315,8 @@ class SdePage {
 
     this.csvFile = csvFile;
 
-    if(headers == null) return;
-
+    if(headers == null) return; // Grab all columns
     this.headers = headers;
     if (!Array.isArray(headers)) this.headers = [headers];
-
-    
-
   }
 }

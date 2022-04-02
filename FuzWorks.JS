@@ -12,15 +12,23 @@
 * Author: unknown
 * Modified by CJ Kilman 11/19/2021 Added Configuration options and a Safe request buffer to avoide overloading the service get requesgt method
 */
-function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",order_level = "min") {
+function fuzzApiPriceData(type_ids, market_hub_id = 60003760, order_type = null,order_level = null) {
     if (!type_ids) throw 'type_ids is required';
     if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
-
-    // filter Blank type_ids
-    type_ids = type_ids.filter(e =>{ return e === 0 || e });
+    type_ids = type_ids.filter(Number) ;
     
     //Default to Jita if not specified.
     if( isNaN(market_hub_id))   market_hub_id = 60003760;
+
+    if(order_type == null &&  order_level.toLowerCase() == "max") order_type = "buy";
+    if(order_type == null &&  order_level.toLowerCase() == "min") order_type = "sell";
+    if(order_type.toLowerCase() == "buy" &&  order_level == null) order_type = "buy";
+    if(order_type.toLowerCase() == "sell" &&  order_level == null) order_type = "min";
+  
+    if(order_type == null &&  order_level == null){
+      order_type = "sell";
+      order_level = "min";
+    }
 
       /*
       * Configuration Section
