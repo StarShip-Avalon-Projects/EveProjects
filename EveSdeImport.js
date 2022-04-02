@@ -135,8 +135,7 @@ function createOrClearSdeSheet(sheetName) {
 }
 
 function  deleteBlankColumnsAndCollumns(workSheet) {
-  if(workSheet == null)
-    throw ("workSheet not defined")
+  if(workSheet == null)  throw ("workSheet not defined")
   let maxColumns = workSheet.getMaxColumns();
   let lastColumns = workSheet.getLastColumn();
   let maxRows = workSheet.getMaxColumns();
@@ -310,10 +309,12 @@ class SdePage {
 
     this.csvFile = csvFile;
 
-    if (!Array.isArray(headers))
-      this.headers = [headers];
-    else
-      this.headers = headers;
+    if(headers == null) return;
+
+    this.headers = headers;
+    if (!Array.isArray(headers)) this.headers = [headers];
+
+    
 
   }
 }

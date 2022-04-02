@@ -33,7 +33,7 @@ function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",or
     if(type_ids.length < safe_item_limit)
     {
       fuzz_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
-      return type_ids.map(type_id =>{ return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; });
+      return type_ids.map(type_id =>{ return [parseFloat(fuzz_price_data[type_id][order_type.toLowerCase()][order_level.toLowerCase()])]; });
     }
     
   
@@ -52,7 +52,7 @@ function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",or
         if (safe_item_index > safe_item_limit)
         {
           fuzz_price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-          result = result.concat( safe_id_set.map(type_id => { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; }))
+          result = result.concat( safe_id_set.map(type_id =>  [parseFloat(fuzz_price_data[type_id][order_type.toLowerCase()][order_level.toLowerCase()])]));
   
           //Reset the request buffer for the next set
           safe_item_index = 0;
@@ -65,7 +65,7 @@ function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",or
     if(safe_id_set.length > 0)
     {
     fuzz_price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-    result = result.concat( safe_id_set.map(type_id => { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; }))
+    result = result.concat( safe_id_set.map(type_id => [parseFloat(fuzz_price_data[type_id][order_type.toLowerCase()][order_level.toLowerCase()])]));
     }
     
     return result;
@@ -89,14 +89,11 @@ function fuzzPriceDataByHub(type_ids, market_hub = "jita", order_type = "sell", 
     // Safety net
     if (!type_ids) throw 'type_ids is required';
     if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
-    let marketHubID = 60003760;
-     order_type = order_type.toLowerCase();
-     order_level = order_level.toLowerCase();
-    // Select hub ID, can ONLY use major trade hubs with this API
+    type_ids = type_ids.filter(Number) ;
+
+     let marketHubID = 60003760; // You'll find no place filled with scum and villianry like Jita;
     switch (market_hub.toLowerCase()) {
-    case 'jita':
-        marketHubID = 60003760;
-        break;
+
     case 'amarr':
         marketHubID = 60008494;
         break;
@@ -109,10 +106,8 @@ function fuzzPriceDataByHub(type_ids, market_hub = "jita", order_type = "sell", 
     case 'hek':
         marketHubID = 60005686;
         break;
-    default:
-        marketHubID = 60003760; //Jita
     }
 
-    return fuzzApiPrice(type_ids,marketHubID,order_type,order_level)
+    return fuzzApiPrice(type_ids , marketHubID , order_type , order_level)
 
   }
