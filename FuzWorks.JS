@@ -12,8 +12,9 @@
 * Author: unknown
 * Modified by CJ Kilman 11/19/2021 Added Configuration options and a Safe request buffer to avoide overloading the service get requesgt method
 */
-function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type = "sell",order_level = "min") {
+function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",order_level = "min") {
     if (!type_ids) throw 'type_ids is required';
+    if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
     
     // filter Blank type_ids
     type_ids = type_ids.filter(function(e){ return e === 0 || e });
@@ -89,62 +90,30 @@ function fuzzPriceDataByHub(type_ids, market_hub = "jita", order_type = "sell", 
     // Safety net
     if (!type_ids) throw 'type_ids is required';
     if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
-    let lower_market_hub = market_hub.toLowerCase();
-    let lower_order_type = order_type.toLowerCase();
-    let lower_order_level = order_level.toLowerCase();
+    let marketHubID = 60003760;
+     order_type = order_type.toLowerCase();
+     order_level = order_level.toLowerCase();
     // Select hub ID, can ONLY use major trade hubs with this API
-    switch (lower_market_hub) {
+    switch (market_hub.toLowerCase()) {
     case 'jita':
-        lower_market_hub = 60003760;
+        marketHubID = 60003760;
         break;
     case 'amarr':
-        lower_market_hub = 60008494;
+        marketHubID = 60008494;
         break;
     case 'dodixie':
-        lower_market_hub = 60011866;
+        marketHubID = 60011866;
         break;
     case 'rens':
-        lower_market_hub = 60004588;
+        marketHubID = 60004588;
         break;
     case 'hek':
-        lower_market_hub = 60005686;
+        marketHubID = 60005686;
         break;
     default:
-        lower_market_hub = 60003760; //Jita
+        marketHubID = 60003760; //Jita
     }
-    // Configuration Section
-    const service_url = "https://market.fuzzwork.co.uk/aggregates/?station=" + lower_market_hub +"&types=";
-    const safe_item_limit = 200; // Some Endpoint services are limited to 200 integers
-    let fuzz_price_data = ""; // Sets blank let
-    // Check for Safe id count
-    if(type_ids.length < safe_item_limit)
-    {
-      fuzz_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
-      return type_ids.map(function(type_id) { return [parseFloat(fuzz_price_data[type_id][lower_order_type][lower_order_level])]; });
-    } 
-    // Safe request buffer stuff
-    let result=[];
-    let safe_id_set= [];
-    let safe_item_index = 0; 
-    // Start running loop for safe array
-    for (i = 0; i < type_ids.length; i++)
-    {
-        safe_id_set.push(type_ids[i]); // Copy items into a Safe Array
-            if (safe_item_index > safe_item_limit) // Once Full, Grab the data result
-            {
-                fuzz_price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-                result = result.concat( safe_id_set.map(function(type_id) { return [parseFloat(fuzz_price_data[type_id][lower_order_type][lower_order_level])]; }));
-                // Reset the request buffer for the next set
-                safe_item_index = 0;
-                safe_id_set = [];
-            }
-        safe_item_index++;
-    }
-    // Capture overflow buffer
-    if(safe_id_set.length > 0)
-    {
-        fuzz_price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-        result = result.concat( safe_id_set.map(function(type_id) { return [parseFloat(fuzz_price_data[type_id][lower_order_type][lower_order_level])]; }));
-    }
-    return result;
+
+    return fuzzApiPrice(type_ids,marketHubID,order_type,order_level)
+
   }
