@@ -15,13 +15,12 @@
 function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",order_level = "min") {
     if (!type_ids) throw 'type_ids is required';
     if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
-    
+
     // filter Blank type_ids
-    type_ids = type_ids.filter(function(e){ return e === 0 || e });
+    type_ids = type_ids.filter(e =>{ return e === 0 || e });
     
-    //Make sure Market Hub is Valid
-    isNaN(market_hub_id)
-     market_hub_id = 60003760;
+    //Default to Jita if not specified.
+    if( isNaN(market_hub_id))   market_hub_id = 60003760;
 
       /*
       * Configuration Section
@@ -29,12 +28,12 @@ function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",or
     const service_url = "https://market.fuzzwork.co.uk/aggregates/?station=" + market_hub_id +"&types=";
     const safe_item_limit = 200; // Some Endpoint services are limited to 200 integers
   
-      var fuzz_price_data = "";
+    let fuzz_price_data = "";
       // Check for Safe id count
     if(type_ids.length < safe_item_limit)
     {
       fuzz_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
-      return type_ids.map(function(type_id) { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; });
+      return type_ids.map(type_id =>{ return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; });
     }
     
   
@@ -53,7 +52,7 @@ function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",or
         if (safe_item_index > safe_item_limit)
         {
           fuzz_price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-          result = result.concat( safe_id_set.map(function(type_id) { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; }))
+          result = result.concat( safe_id_set.map(type_id => { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; }))
   
           //Reset the request buffer for the next set
           safe_item_index = 0;
@@ -66,7 +65,7 @@ function fuzzApiPrice(type_ids, market_hub_id = 60003760, order_type = "sell",or
     if(safe_id_set.length > 0)
     {
     fuzz_price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-    result = result.concat( safe_id_set.map(function(type_id) { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; }))
+    result = result.concat( safe_id_set.map(type_id => { return [parseFloat(fuzz_price_data[type_id][order_type][order_level])]; }))
     }
     
     return result;
