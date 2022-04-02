@@ -13,13 +13,14 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
   // Safety net 
   if (!type_ids) throw 'type_ids is required';
   if (!location_id) throw 'location id is required';
+  if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
   // Configuration Section
   let location = "";
-  switch(location_type){
-  case "Region":
+  switch(location_type.toLowerCase()){
+  case "region":
       location = "regionlimit=" + location_id;
       break;
-   case "System":
+   case "system":
       location = "usesystem=" + location_id;
       break;
     default:
@@ -28,13 +29,12 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
 
   const service_url = "https://api.evemarketer.com/ec/marketstat/json?&" + location +"&typeid=";
   const safe_item_limit = 150; // The limit for MarketStat is 200 for each fetch
-  let marketstat_price_data = []; // Sets blank le// Check for Safe id count
 
-   var result = [];
+   let result = [];
 
   if(type_ids.length < safe_item_limit)
   {
-    marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
+    const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
     for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
     {
         try
@@ -58,7 +58,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
       safe_id_set.push(type_ids[i]); // Copy items into a Safe Array
           if (safe_item_index > safe_item_limit) // Once Full, Grab the data result
           {
-              marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+            const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
               for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
               {
                 try
@@ -79,7 +79,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
   // Capture overflow buffer
   if(safe_id_set.length > 0)
   {
-    marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+    const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
     for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
     {
         try
