@@ -9,17 +9,30 @@
 * @return result for each type_id. This can be configured differently.
 * @customfunction
 */
-function marketStatData(type_ids, location_type, location_id, order_type = "sell", order_level = "min") {
-  // Safety net 
-  if (!type_ids) throw 'type_ids is required';
+function marketStatData(type_ids, location_type, location_id, order_type = null, order_level = null) {
   if (!location_id) throw 'location id is required';
+
+  if (!type_ids) throw 'type_ids is required';
+  if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
+  type_ids = type_ids.filter(Number) ;
+  
+  if(order_type == null &&  order_level.toLowerCase() == "max") order_type = "buy";
+  if(order_type == null &&  order_level.toLowerCase() == "min") order_type = "sell";
+  if(order_type.toLowerCase() == "buy" &&  order_level == null) order_type = "buy";
+  if(order_type.toLowerCase() == "sell" &&  order_level == null) order_type = "min";
+
+  if(order_type == null &&  order_level == null){
+    order_type = "sell";
+    order_level = "min";
+  }
+
   // Configuration Section
   let location = "";
-  switch(location_type){
-  case "Region":
+  switch(location_type.toLowerCase()){
+  case "region":
       location = "regionlimit=" + location_id;
       break;
-   case "System":
+   case "system":
       location = "usesystem=" + location_id;
       break;
     default:
@@ -27,19 +40,18 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
   }
 
   const service_url = "https://api.evemarketer.com/ec/marketstat/json?&" + location +"&typeid=";
-  const safe_item_limit = 150; // The limit for MarketStat is 200 for each fetch
-  let marketstat_price_data = []; // Sets blank le// Check for Safe id count
+  const safe_item_limit = 200; // The limit for MarketStat is 200 for each fetch
 
-   var result = [];
+   let result = [];
 
   if(type_ids.length < safe_item_limit)
   {
-    marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
+    const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
     for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+            result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -58,12 +70,12 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
       safe_id_set.push(type_ids[i]); // Copy items into a Safe Array
           if (safe_item_index > safe_item_limit) // Once Full, Grab the data result
           {
-              marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+            const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
               for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
               {
                 try
                 {
-                    result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+                    result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
                 }
                 catch(error) // Value not on market, Leave Blank cell
                 {
@@ -79,12 +91,12 @@ function marketStatData(type_ids, location_type, location_id, order_type = "sell
   // Capture overflow buffer
   if(safe_id_set.length > 0)
   {
-    marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+    const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
     for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+            result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
         }
         catch(error) // Value not on market, Leave Blank cell
         {
