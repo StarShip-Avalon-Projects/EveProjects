@@ -10,21 +10,21 @@
 * @customfunction
 */
 function marketStatData(type_ids, location_type, location_id, order_type = null, order_level = null) {
-  if (!location_id) throw 'location id is required';
-
   if (!type_ids) throw 'type_ids is required';
-  if (!Array.isArray(type_ids)) type_ids = [type_ids]; 
   type_ids = type_ids.filter(Number) ;
-  
-  if(order_type == null &&  order_level.toLowerCase() == "max") order_type = "buy";
-  if(order_type == null &&  order_level.toLowerCase() == "min") order_type = "sell";
-  if(order_type.toLowerCase() == "buy" &&  order_level == null) order_type = "buy";
-  if(order_type.toLowerCase() == "sell" &&  order_level == null) order_type = "min";
+
+  if( isNaN(market_hub_id))    market_hub_id = 60003760;
 
   if(order_type == null &&  order_level == null){
     order_type = "sell";
     order_level = "min";
   }
+
+  if(order_type == null &&  order_level.toLowerCase() == "max") order_type = "buy";
+  if(order_type == null &&  order_level.toLowerCase() == "min") order_type= "sell";
+  if(order_type.toLowerCase() == "buy" &&  order_level == null) order_level = "max";
+  if(order_type.toLowerCase() == "sell" &&  order_level == null) order_level = "min";
+  order_type = order_type.toLowerCase(); order_level = order_level.toLowerCase();
 
   // Configuration Section
   let location = "";
@@ -51,7 +51,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
+            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -75,7 +75,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
               {
                 try
                 {
-                    result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
+                    result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
                 }
                 catch(error) // Value not on market, Leave Blank cell
                 {
@@ -96,7 +96,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type.toLowerCase()][order_level.toLowerCase()]);
+            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
         }
         catch(error) // Value not on market, Leave Blank cell
         {
