@@ -11,6 +11,7 @@
 */
 function marketStatData(type_ids, location_type, location_id, order_type = null, order_level = null) {
   if (!type_ids) throw 'type_ids is required';
+  if(!Array.isArray(type_ids)) type_ids = [type_ids];
   type_ids = type_ids.filter(Number) ;
 
   if( isNaN(market_hub_id))    market_hub_id = 60003760;
