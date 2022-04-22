@@ -95,7 +95,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
         if (safe_item_index > safe_item_limit)
         {
           price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-          for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
+          for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
           {
             try
             {
@@ -117,7 +117,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
     if(safe_id_set.length > 0)
     {
       price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-      for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
+      for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
       {
         try
         {

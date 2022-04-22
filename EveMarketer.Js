@@ -14,7 +14,6 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
   if(!Array.isArray(type_ids)) type_ids = [type_ids];
   type_ids = type_ids.filter(Number) ;
 
-  if( isNaN(market_hub_id))    market_hub_id = 60003760;
 
   if(order_type == null &&  order_level == null){
     order_type = "sell";
@@ -41,9 +40,9 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
   }
 
   const service_url = "https://api.evemarketer.com/ec/marketstat/json?&" + location +"&typeid=";
-  const safe_item_limit = 200; // The limit for MarketStat is 200 for each fetch
+  const safe_item_limit = 150; // The limit for MarketStat is 200 for each fetch
 
-   let result = [];
+   var result = [];
 
   if(type_ids.length < safe_item_limit)
   {
@@ -63,7 +62,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
   } 
   // Safe request buffer stuff
 
-  let safe_id_set= [];
+  var safe_id_set= [];
   let safe_item_index = 0; 
   // Start running loop for safe array
   for (i = 0; i < type_ids.length; i++)
@@ -72,7 +71,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
           if (safe_item_index > safe_item_limit) // Once Full, Grab the data result
           {
             const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-              for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
+              for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
               {
                 try
                 {
@@ -93,7 +92,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
   if(safe_id_set.length > 0)
   {
     const marketstat_price_data =  JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-    for(currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
+    for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
     {
         try
         {
