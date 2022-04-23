@@ -135,7 +135,8 @@ function createOrClearSdeSheet(sheetName) {
 }
 
 function  deleteBlankColumnsAndCollumns(workSheet) {
-  if(workSheet == null)  throw ("workSheet not defined")
+  if(workSheet == null)
+    throw ("workSheet not defined")
   let maxColumns = workSheet.getMaxColumns();
   let lastColumns = workSheet.getLastColumn();
   let maxRows = workSheet.getMaxColumns();
@@ -267,7 +268,7 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 
 
     if (skipHeaders || saveCollumn) {
-      arrData[arrData.length - 1].push(strMatchedValue.replace(gREGEX, "''$1"));
+      arrData[arrData.length - 1].push(strMatchedValue.replace(gREGEX, "''$1").trim());
     }
 
   }
@@ -276,25 +277,19 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
   // Return the parsed data.
   return (arrData);
 }
-
-/**
- * This test the basic functionality
- *
- */
 function testSDE()
 {
-
   const sdePages = [
     /**   new SdePage(
           "SDE_sample",
           "sample.csv",
-          [ "sample headers", "leave null to grab every column",]
+          [ "sample headers", "These are not required",]
           ),*/
         new SdePage(
         "SDE_invTypes",
         "invTypes.csv",
         /** Optional headers,  
-          * invTypes is 100+ megabytes. Select coumns needed to help it laod faster. 
+          * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
           */
           [ "typeID","groupID","typeName"]
           )
@@ -315,8 +310,10 @@ class SdePage {
 
     this.csvFile = csvFile;
 
-    if(headers == null) return; // Grab all columns
-    this.headers = headers;
-    if (!Array.isArray(headers)) this.headers = [headers];
+    if (!Array.isArray(headers))
+      this.headers = [headers];
+    else
+      this.headers = headers;
+
   }
 }
