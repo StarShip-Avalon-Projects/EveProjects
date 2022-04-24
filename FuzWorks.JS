@@ -19,16 +19,17 @@ function fuzzApiPriceData(type_ids, market_hub_id = 60003760, order_type = null,
     
     //Default to Jita if not specified.
     if( isNaN(market_hub_id))   market_hub_id = 60003760;
-
+    
+    if(order_type == null &&  order_level == null){
+      order_type = "sell";
+      order_level = "min";
+    }
     if(order_type == null &&  order_level.toLowerCase() == "max") order_type = "buy";
     if(order_type == null &&  order_level.toLowerCase() == "min") order_type = "sell";
     if(order_type.toLowerCase() == "buy" &&  order_level == null) order_type = "buy";
     if(order_type.toLowerCase() == "sell" &&  order_level == null) order_type = "min";
   
-    if(order_type == null &&  order_level == null){
-      order_type = "sell";
-      order_level = "min";
-    }
+
 
       /*
       * Configuration Section
@@ -116,6 +117,6 @@ function fuzzPriceDataByHub(type_ids, market_hub = "jita", order_type = "sell", 
         break;
     }
 
-    return fuzzApiPrice(type_ids , marketHubID , order_type , order_level)
+    return fuzzApiPrice(type_ids , marketHubID , order_type , order_level);
 
   }
