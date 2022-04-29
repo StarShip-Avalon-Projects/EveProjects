@@ -1,5 +1,28 @@
 
 //JITA SELL
+
+function testfuzAPI()
+{
+  let ids = [
+    16239,
+16243,
+24030,
+32881,
+17366,
+16273,
+34206,
+34202,
+34203,
+34205,
+34204,
+34201,
+19761,
+42695,
+42830
+  ];
+  return fuzzApiPriceDataJitaSell(ids);
+}
+
 /**
 * Generic API function to get a list of minimal prices for an array of type_id's
 * @param {range} A vertical range of type_ids.
@@ -35,7 +58,6 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
     const service_url = "https://market.fuzzwork.co.uk/aggregates/?station=" + market_hub_id +"&types=";
     const safe_item_limit = 200; // Some Endpoint services are limited to 200 integers
   
-      let price_data;
       var result=[];
 
     let safe_id_set= [];
@@ -43,12 +65,12 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
 
     if(type_ids.length < safe_item_limit)
     {
-      price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
+     const price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
       for(var currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
       {
         try
         {
-            result = result.concat(price_data[type_ids[currentIndex]][order_type][order_level]);
+            result = result.concat(parseFloat( price_data[type_ids[currentIndex]][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -71,12 +93,12 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
        //Once Full, Grab the data result
         if (safe_item_index > safe_item_limit)
         {
-          price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+        const  price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
           for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
           {
             try
             {
-            result = result.concat(price_data[safe_id_set[currentIndex]][order_type][order_level]);
+                result = result.concat(parseFloat( price_data[type_ids[currentIndex]][order_type][order_level]));
             }
             catch(error) // Value not on market, Leave Blank cell
             {
@@ -93,12 +115,12 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
   // Capture overflow buffer
     if(safe_id_set.length > 0)
     {
-      price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+    const  price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
       for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
       {
         try
         {
-            result = result.concat(price_data[safe_id_set[currentIndex]][order_type][order_level]);
+           result = result.concat(parseFloat( price_data[type_ids[currentIndex]][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {

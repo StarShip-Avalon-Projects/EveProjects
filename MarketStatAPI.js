@@ -51,7 +51,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+          result = result.concat(parseFloat( marketstat_price_data[currentIndex][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -75,7 +75,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
               {
                 try
                 {
-                    result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+                  result = result.concat(parseFloat( marketstat_price_data[currentIndex][order_type][order_level]));
                 }
                 catch(error) // Value not on market, Leave Blank cell
                 {
@@ -96,7 +96,7 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
     {
         try
         {
-            result = result.concat( marketstat_price_data[currentIndex][order_type][order_level]);
+          result = result.concat(parseFloat( marketstat_price_data[currentIndex][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {
