@@ -98,7 +98,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
           {
             try
             {
-                result = result.concat(parseFloat( price_data[type_ids[currentIndex]][order_type][order_level]));
+                result = result.concat(parseFloat( price_data[safe_id_set[currentIndex]][order_type][order_level]));
             }
             catch(error) // Value not on market, Leave Blank cell
             {
@@ -120,7 +120,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
       {
         try
         {
-           result = result.concat(parseFloat( price_data[type_ids[currentIndex]][order_type][order_level]));
+           result = result.concat(parseFloat( price_data[safe_id_set[currentIndex]][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {
