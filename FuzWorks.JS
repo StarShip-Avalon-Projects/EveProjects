@@ -1,28 +1,5 @@
 
 //JITA SELL
-
-function testfuzAPI()
-{
-  let ids = [
-    16239,
-16243,
-24030,
-32881,
-17366,
-16273,
-34206,
-34202,
-34203,
-34205,
-34204,
-34201,
-19761,
-42695,
-42830
-  ];
-  return fuzzApiPriceDataJitaSell(ids);
-}
-
 /**
 * Generic API function to get a list of minimal prices for an array of type_id's
 * @param {range} A vertical range of type_ids.
