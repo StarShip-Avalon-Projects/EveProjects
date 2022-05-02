@@ -80,11 +80,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
 
       return result;
     }
-  
-
-  
-
-    
+      
     for (i = 0; i < type_ids.length - 1  ;i++)
       {
           // Copy itemss into a Safe Array
