@@ -1,5 +1,20 @@
+/**
+ * Verson: 1.0
+  * Import SDE_invTypes from Fuzworks CSV files.
+  *  Author: CJ Kilman
+  *  Free to use and modify, Do not remove header.
+  *
+  * Change Log:
+  * 5.25.2022 Added Range backup support. This makes Updating Existing SDE Tables with custom values and fomulas easier. Just provide a list of ranges to the configuration section and the script will preserve
+  */
+
+/**
+* ref: https://blog.ouseful.info/2010/03/11/writing-2d-data-arrays-to-a-google-spreadsheet-from-google-apps-script-making-an-http-post-request-for-csv-data/
+ */
 
 /** Sample add menu option
+ *  It is recodmended to copy this to a different script such as Main.js. Some place to keep your 
+ * configeration stuff safe as this file is subject to modifcations.
 function onOpen() {
     var ui = SpreadsheetApp.getUi();
     // Or DocumentApp or FormApp.
@@ -16,7 +31,8 @@ function onOpen() {
 /**
  * SED Loader : Runs each SDE update
  * Sample Function
- * It is recodmended
+ * It is recodmended to copy this to a different script such as Main.js. Some place to keep your 
+ * configeration stuff safe as this file is subject to modifcations.
  */
 /**function importSDE()
 {
@@ -58,20 +74,52 @@ function onOpen() {
 
   }*/
 
-
 /**
  * 
  * @param {*} sheetName Name of the Sheet (aka Tab)
  * @param {*} csvFile Name of SED to download from Fuzworks
  */
-function buildSDEs(sdePage) {
+ function buildSDEs(sdePage) {
   if (sdePage == null)
     throw "sdePage is required";
   console.time("imortSDEinvTypes( sheetName:" + sdePage.sheet + ", csvFile:" + sdePage.csvFile + "  })");
   const csvContent = downloadTextData(sdePage.csvFile);
   const csvData = CSVToArray(csvContent, ",", sdePage.headers);
 
-  let rows = [];
+
+  try{
+
+  let activeSheet = SpreadsheetApp.getActiveSpreadsheet();
+  var workSheet = activeSheet.getSheetByName(sdePage.sheet);
+
+//Bacukup Ranges
+var backedupValues = [];
+ if(sdePage.backupRanges!=null)
+for(var i=0; i < sdePage.backupRanges.length; i++){
+  var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
+  var formulas = backupRange.getFormulas();
+  var values = backupRange.getValues();
+  
+  for (var r=0; r<formulas.length; r++) {
+    for (var c=0; c<formulas[r].length; c++) {
+     var formula = formulas[r][c];
+     var value = values[r][c];
+ 
+     if(value) Logger.log("MEEP: " + value);
+           Logger.log("V: " + value);
+           Logger.log("F: " + formula);
+      if (formula) {
+         
+       Logger.log(formula);
+        values[r+1,c+1] = formula;
+      }
+    }
+   }
+  backedupValues.push(values)
+  }
+
+  workSheet = createOrClearSdeSheet(sdePage.sheet);
+    let rows = [];
   let cells = [];
   for (var i = 0; i < csvData.length; i++) {
 
@@ -82,10 +130,18 @@ function buildSDEs(sdePage) {
     rows.push(cells);
     cells = [];
   }
-  try{
-  let workSheet = createOrClearSdeSheet(sdePage.sheet);
   let destinationRange = workSheet.getRange(1, 1, i, j);
+
   destinationRange.setValues(rows);
+
+//restore Backups
+if(sdePage.backupRanges!=null)
+for(var i=0; i < sdePage.backupRanges.length; i++){
+ var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
+  backupRange.setValues(backedupValues[i]);
+
+}
+
   deleteBlankColumnsAndCollumns(workSheet);
   }
   catch(e)
@@ -129,7 +185,6 @@ function createOrClearSdeSheet(sheetName) {
   //assume new sheet
   workSheet = activeSheet.insertSheet();
   workSheet.setName(sheetName);
-  deleteBlankColumnsAndCollumns(workSheet);
   console.timeEnd("createOrClearSdeSheet({sheetName:" + sheetName + "}})");
   return workSheet;
 }
@@ -255,17 +310,19 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
     }
     // Skip row at column here?
 
-    let saveCollumn = false;
-    //allow only headers to pass
-    if (headersIndex.indexOf(columnIndex) > -1) {
-      saveCollumn = true;
-    }
-    //row 0 assume is headers
-    if (headers.indexOf(strMatchedValue) > -1) {
-      headersIndex.push(columnIndex);
-      saveCollumn = true;
-    }
 
+    let saveCollumn = false;
+    if(!skipHeaders){
+      //allow only headers to pass
+      if (headersIndex.indexOf(columnIndex) > -1) {
+        saveCollumn = true;
+      }
+      //row 0 assume is headers
+      if (headers.indexOf(strMatchedValue) > -1) {
+        headersIndex.push(columnIndex);
+        saveCollumn = true;
+      }
+    }
 
     if (skipHeaders || saveCollumn) {
       arrData[arrData.length - 1].push(strMatchedValue.replace(gREGEX, "''$1").trim());
@@ -279,22 +336,58 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 }
 function testSDE()
 {
-  const sdePages = [
-    /**   new SdePage(
-          "SDE_sample",
-          "sample.csv",
-          [ "sample headers", "These are not required",]
-          ),*/
-        new SdePage(
-        "SDE_invTypes",
-        "invTypes.csv",
-        /** Optional headers,  
-          * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
-          */
-          [ "typeID","groupID","typeName"]
-          )
-      ];
-      sdePages.forEach(page => buildSDEs(page));
+          const sdePages = [
+            /**   new SdePage(
+                 "SDE_sample",
+                "sample.csv",
+                [ "sample headers", "These are not required",]
+                ),*/
+              new SdePage(
+                "SDE ItemID",
+                "invTypes.csv",
+                /** Optional headers,  
+                  * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
+                */
+                [ "typeID",	"groupID"	,"typeName",	"published","volume",	"marketGroupID"	,"variationparentTypeID"]
+                ),
+                new SdePage (
+                  "SDE GroupID",
+                  "invGroups.csv",
+                  ["groupID",	"categoryID",	"groupName"	,"published"]
+                ),
+                new SdePage (
+                  "SDE CategoryID",
+                  "invCategories.csv",
+                ),//invMetaTypes.csv 
+                new SdePage (
+                  "SDE Meta Types",
+                  "invMetaTypes.csv",
+              ),
+                new SdePage (
+                  "SDE Meta Groups",
+                  "invMetaGroups.csv",
+                ), //industryBlueprints.csv
+                new SdePage (
+                  "SDE Blueprints",
+                  "industryBlueprints.csv",
+                  null,
+                  ["'SDE Blueprints'!C1:D2"]
+                ),
+                new SdePage (
+                  "SDE Probabilities",
+                  "industryActivityProbabilities.csv",
+                  ["typeID"	,	"probability" ]
+                ),
+                new SdePage (
+                  "SDE Indy Products",
+                  "industryActivityProducts.csv",
+                  null,
+                  ["'SDE Indy Products'!E1:E2"]
+                )
+              ];
+            
+          //build the sde pages with each page configuration  
+          sdePages.forEach(sdePage => buildSDEs(sdePage));
 }
 /**
  * @param sheet Name of the tab to place the SDE data
@@ -304,16 +397,21 @@ function testSDE()
  * @class SdePage
  */
 class SdePage {
-  constructor(sheet, csvFile, headers = null) {
+  constructor(sheet, csvFile, headers = null,backupRanges=null) {
 
     this.sheet = sheet;
 
     this.csvFile = csvFile;
 
-    if (!Array.isArray(headers))
-      this.headers = [headers];
-    else
+    if(headers!=null){
       this.headers = headers;
+      if (!Array.isArray(headers))  this.headers = [headers];
+    }
+    
+    if(backupRanges != null){
+      this.backupRanges = backupRanges;
+      if (!Array.isArray(backupRanges))  this.backupRanges = [backupRanges];
+    }
 
   }
 }

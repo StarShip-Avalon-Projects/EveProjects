@@ -58,6 +58,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
     const service_url = "https://market.fuzzwork.co.uk/aggregates/?station=" + market_hub_id +"&types=";
     const safe_item_limit = 200; // Some Endpoint services are limited to 200 integers
   
+      let price_data;
       var result=[];
 
     let safe_id_set= [];
@@ -65,12 +66,12 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
 
     if(type_ids.length < safe_item_limit)
     {
-     const price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
+      price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
       for(var currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
       {
         try
         {
-            result = result.concat(parseFloat( price_data[type_ids[currentIndex]][order_type][order_level]));
+            result = result.concat(parseFloat(price_data[type_ids[currentIndex]][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -80,7 +81,11 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
 
       return result;
     }
-      
+  
+
+  
+
+    
     for (i = 0; i < type_ids.length - 1  ;i++)
       {
           // Copy itemss into a Safe Array
@@ -89,12 +94,12 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
        //Once Full, Grab the data result
         if (safe_item_index > safe_item_limit)
         {
-        const  price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+          price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
           for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
           {
             try
             {
-                result = result.concat(parseFloat( price_data[safe_id_set[currentIndex]][order_type][order_level]));
+            result = result.concat(parseFloat(price_data[safe_id_set[currentIndex]][order_type][order_level]));
             }
             catch(error) // Value not on market, Leave Blank cell
             {
@@ -111,12 +116,12 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
   // Capture overflow buffer
     if(safe_id_set.length > 0)
     {
-    const  price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
+      price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
       for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
       {
         try
         {
-           result = result.concat(parseFloat( price_data[safe_id_set[currentIndex]][order_type][order_level]));
+            result = result.concat(parseFloat(price_data[safe_id_set[currentIndex]][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -146,36 +151,38 @@ function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", 
     // Safety net
     if (!type_ids) throw 'type_ids is required';
     // Select hub ID, can ONLY use major trade hubs with this API
-    switch (market_hub) {
-    case 'Amarr':
+    switch (market_hub.toLowerCase()) {
+    case 'amarr':
         market_hub = 60008494;
         break;
-    case 'Dodixie':
+    case 'dodixie':
         market_hub = 60011866;
         break;
-    case 'Rens':
+    case 'rens':
         market_hub = 60004588;
         break;
-    case 'Hek':
+    case 'hek':
         market_hub = 60005686;
         break; 
-    case 'Jita':
+    case 'jita':
     default:
         market_hub = 60003760;
     }
     
     //deal with defaults on most used order types
-    if(order_level==null)
-    {
-      switch(order_type){
-      case 'sell':
-            order_level = "max";
-            break;
-      case 'buy':
-      default:
-        order_level= "min";
+
+      if(order_level==null)
+      {
+        switch(order_type.toLowerCase()){
+    
+        case 'buy':
+              order_level = "max";
+              break;
+        case 'sell':
+        default:
+          order_level= "min";
+            }
           }
-      }
     // result
     return fuzzApiPriceDataJitaSell(type_ids,market_hub,order_type,order_level);
   
