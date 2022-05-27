@@ -336,58 +336,75 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 }
 function testSDE()
 {
-          const sdePages = [
-            /**   new SdePage(
-                 "SDE_sample",
-                "sample.csv",
-                [ "sample headers", "These are not required",]
-                ),*/
-              new SdePage(
-                "SDE ItemID",
-                "invTypes.csv",
-                /** Optional headers,  
-                  * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
-                */
-                [ "typeID",	"groupID"	,"typeName",	"published","volume",	"marketGroupID"	,"variationparentTypeID"]
+        // Lock Formulas from running
+      const haltFormulas = [["Don't Load"],["Don't Load"],["Don't Load"],["Don't Load"],["Don't Load"],["Don't Load"],["Don't Load"],["Don't Load"],["Don't Load"]];
+
+      var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+      var loadingHelper= thisSpreadSheet.getRangeByName("'Loading Helper'!C3:C11");
+      const  backupSettings = loadingHelper.getValues();
+      loadingHelper.setValues(haltFormulas);
+           try{
+
+            const sdePages = [
+              /**   new SdePage(
+                   "SDE_sample",
+                  "sample.csv",
+                  [ "sample headers", "These are not required",]
+                  ),*/
+                new SdePage(
+                  "SDE ItemID",
+                  "invTypes.csv",
+                  /** Optional headers,  
+                    * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
+                  */
+                  [ "typeID",	"groupID"	,"typeName",	"published","volume",	"marketGroupID"	,"variationparentTypeID"]
+                  ),
+                  new SdePage (
+                    "SDE GroupID",
+                    "invGroups.csv",
+                    ["groupID",	"categoryID",	"groupName"	,"published"]
+                  ),
+                  new SdePage (
+                    "SDE CategoryID",
+                    "invCategories.csv",
+                    ["categoryID",	"categoryName"]
+                  ),//invMetaTypes.csv 
+                  new SdePage (
+                    "SDE Meta Types",
+                    "invMetaTypes.csv",
                 ),
-                new SdePage (
-                  "SDE GroupID",
-                  "invGroups.csv",
-                  ["groupID",	"categoryID",	"groupName"	,"published"]
-                ),
-                new SdePage (
-                  "SDE CategoryID",
-                  "invCategories.csv",
-                ),//invMetaTypes.csv 
-                new SdePage (
-                  "SDE Meta Types",
-                  "invMetaTypes.csv",
-              ),
-                new SdePage (
-                  "SDE Meta Groups",
-                  "invMetaGroups.csv",
-                ), //industryBlueprints.csv
-                new SdePage (
-                  "SDE Blueprints",
-                  "industryBlueprints.csv",
-                  null,
-                  ["'SDE Blueprints'!C1:D2"]
-                ),
-                new SdePage (
-                  "SDE Probabilities",
-                  "industryActivityProbabilities.csv",
-                  ["typeID"	,	"probability" ]
-                ),
-                new SdePage (
-                  "SDE Indy Products",
-                  "industryActivityProducts.csv",
-                  null,
-                  ["'SDE Indy Products'!E1:E2"]
-                )
-              ];
-            
-          //build the sde pages with each page configuration  
-          sdePages.forEach(sdePage => buildSDEs(sdePage));
+                  new SdePage (
+                    "SDE Meta Groups",
+                    "invMetaGroups.csv",
+                    ["metaGroupID",	"metaGroupName"]
+                  ), //industryBlueprints.csv
+                  new SdePage (
+                    "SDE Blueprints",
+                    "industryBlueprints.csv",
+                    null,
+                    ["'SDE Blueprints'!C1:D2"]
+                  ),
+                  new SdePage (
+                    "SDE Probabilities",
+                    "industryActivityProbabilities.csv",
+                    ["typeID"	,	"probability" ]
+                  ),
+                  new SdePage (
+                    "SDE Indy Products",
+                    "industryActivityProducts.csv",
+                    null,
+                    ["'SDE Indy Products'!E1:E2"]
+                  )
+                ];
+              
+            //build the sde pages with each page configuration  
+            sdePages.forEach(sdePage => buildSDEs(sdePage));
+     
+      }
+      finally{
+        // release lock
+        loadingHelper.setValues(backupSettings);
+      }
 }
 /**
  * @param sheet Name of the tab to place the SDE data
