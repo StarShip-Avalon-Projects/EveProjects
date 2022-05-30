@@ -93,33 +93,34 @@ function onOpen() {
   var workSheet = activeSheet.getSheetByName(sdePage.sheet);
 
 //Bacukup Ranges
-var backedupValues = [];
- if(sdePage.backupRanges!=null)
-for(var i=0; i < sdePage.backupRanges.length; i++){
-  var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
-  var formulas = backupRange.getFormulas();
-  var values = backupRange.getValues();
-  
-  for (var r=0; r<formulas.length; r++) {
-    for (var c=0; c<formulas[r].length; c++) {
-     var formula = formulas[r][c];
-     var value = values[r][c];
- 
-     if(value) Logger.log("MEEP: " + value);
-           Logger.log("V: " + value);
-           Logger.log("F: " + formula);
-      if (formula) {
-         
-       Logger.log(formula);
-        values[r+1,c+1] = formula;
+  var backedupValues = [];
+  if(sdePage.backupRanges!=null)
+    for(var i=0; i < sdePage.backupRanges.length; i++){
+      var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
+
+      var formulas = backupRange.getFormulas();
+      var values = backupRange.getValues();
+
+      let row = [];
+      let cell = [];
+      for (var r=0; r<formulas.length; r++) {
+        for (var c=0; c<formulas[r].length; c++) {
+          var formula = formulas[r][c];
+          if (formula) {
+            cell.push( formulas[r][c]);
+          }
+          else{
+            cell.push( values[r][c]);
+          }
+        }
+        row.push(cell);
+        cell = [];
       }
-    }
-   }
-  backedupValues.push(values)
-  }
+      backedupValues.push(row);
+      }
 
   workSheet = createOrClearSdeSheet(sdePage.sheet);
-    let rows = [];
+  let rows = [];
   let cells = [];
   for (var i = 0; i < csvData.length; i++) {
 
@@ -134,13 +135,13 @@ for(var i=0; i < sdePage.backupRanges.length; i++){
 
   destinationRange.setValues(rows);
 
-//restore Backups
-if(sdePage.backupRanges!=null)
-for(var i=0; i < sdePage.backupRanges.length; i++){
- var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
-  backupRange.setValues(backedupValues[i]);
+  //restore Backups
+  if(sdePage.backupRanges!=null)
+      for(var i=0; i < sdePage.backupRanges.length; i++){
+      var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
+        backupRange.setValues(backedupValues[i]);
 
-}
+      }
 
   deleteBlankColumnsAndCollumns(workSheet);
   }
