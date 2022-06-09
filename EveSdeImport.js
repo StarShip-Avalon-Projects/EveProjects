@@ -325,8 +325,14 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
       }
     }
 
-    if (skipHeaders || saveCollumn) {
-      arrData[arrData.length - 1].push(strMatchedValue.replace(gREGEX, "''$1").trim());
+    if(skipHeaders || saveCollumn){
+      let value = strMatchedValue.replace(gREGEX,"''$1").trim();
+      if(isNumber(value))
+        arrData[ arrData.length - 1 ].push( parseFloat(value) );
+      else{
+        arrData[ arrData.length - 1 ].push( value );
+      }
+
     }
 
   }
@@ -407,6 +413,17 @@ function testSDE()
         loadingHelper.setValues(backupSettings);
       }
 }
+
+function isNumber(value) {
+  if ((undefined === value) || (null === value)) {
+      return false;
+  }
+  if (typeof value == 'number') {
+      return true;
+  }
+  return !isNaN(value - 0);
+}
+
 /**
  * @param sheet Name of the tab to place the SDE data
  * @param csvFile Name of the file to download from Fuzworks
