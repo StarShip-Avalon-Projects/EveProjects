@@ -34,12 +34,30 @@ function testfuzAPI()
 * Author: unknown
 * Modified by CJ Kilman 11/19/2021 Added Configuration options and a Safe request buffer to avoide overloading the service get requesgt method
 */
-function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type = null ,order_level=null) {
+function fuzzApiPriceDataJitaSell(type_ids, market_hub = 60003760, order_type = null ,order_level=null) {
     if (!type_ids) throw 'type_ids is required';
     if(!Array.isArray(type_ids)) type_ids = [type_ids];
     type_ids = type_ids.filter(Number) ;
 
-    if( isNaN(market_hub_id))    market_hub_id = 60003760;
+var market_hub_id ="station=60003760";
+    // Guaurd Syntax "station=" or "region=###""
+    // Dewfault to Station
+    if( isNumber(market_hub))
+    {
+      if (market_hub > 0)
+      {
+         market_hub_id = "station=" + market_hub.toString();
+      }
+
+    }
+    else{
+    market_hub_id = market_hub;
+    }
+    var check =  market_hub_id.split('=');
+
+
+    if(check[0] !='region' && check[0] !='station' && check[0] !='system')
+    throw new Error("Market hub must be integer or a parameter starting with 'region=' or 'station=' or 'system='")
 
     if(order_type == null &&  order_level == null){
       order_type = "sell";
@@ -55,7 +73,7 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub_id = 60003760, order_type
       /*
       * Configuration Section
       */
-    const service_url = "https://market.fuzzwork.co.uk/aggregates/?station=" + market_hub_id +"&types=";
+    const service_url = "https://market.fuzzwork.co.uk/aggregates/?" + market_hub_id +"&types=";
     const safe_item_limit = 200; // Some Endpoint services are limited to 200 integers
   
       let price_data;

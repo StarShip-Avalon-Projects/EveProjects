@@ -1,11 +1,12 @@
 /**
- * Verson: 1.01
+ * Verson: 1.04
   * Import SDE_invTypes from Fuzworks CSV files.
   *  Author: CJ Kilman
   *  Free to use and modify, Do not remove header.
   *
   * Change Log:
-  * 5.25.2022 Added Range backup support. This makes Updating Existing SDE Tables with custom values and fomulas easier. Just provide a list of ranges to the configuration section and the script will preserve
+  * 6.16.1022 Fixed Ghost taling rows due to pesky trailing newlin and whitespaces in the Fuzworks feed
+  * Added Named Range support for SDE Tables
   */
 
 /**
@@ -47,7 +48,17 @@ function onOpen() {
         
     // Process the user's response.
     if (response == ui.Button.YES) {
-    SpreadsheetApp.flush()
+
+      // Lock Formulas from running
+      const haltFormulas = [[0,0]];
+
+      var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+      var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
+      const  backupSettings = loadingHelper.getValues();
+      loadingHelper.setValues(haltFormulas); 
+
+      try{
+
     const sdePages = [
     /**   new SdePage(
           "SDE_sample",
@@ -65,6 +76,19 @@ function onOpen() {
       ];
       sdePages.forEach(buildSDEs);
 
+      let rangeList =
+      {
+          sde_typeid_name : "SDE_invTypes" ,
+          sde_groups : "SDE_invGroups",
+          sde_volumes : "SDE_invVolumes",
+          sde_reprocess_materials : "SDE_reprocessingMaterials"
+      }
+      setNamedRange(rangeList);
+        }
+    finally{
+          // release lock
+          loadingHelper.setValues(backupSettings); 
+        }
 
     } else if (response == ui.Button.NO) {
         ui.alert('SDE unchanged.');
@@ -79,7 +103,7 @@ function onOpen() {
  * @param {*} sheetName Name of the Sheet (aka Tab)
  * @param {*} csvFile Name of SED to download from Fuzworks
  */
-function buildSDEs(sdePage) {
+ function buildSDEs(sdePage) {
   if (sdePage == null)
     throw "sdePage is required";
   console.time("imortSDEinvTypes( sheetName:" + sdePage.sheet + ", csvFile:" + sdePage.csvFile + "  })");
@@ -89,12 +113,13 @@ function buildSDEs(sdePage) {
 
   try {
 
-    let activeSheet = SpreadsheetApp.getActiveSpreadsheet();
+    const activeSheet = SpreadsheetApp.getActiveSpreadsheet();
     var workSheet = activeSheet.getSheetByName(sdePage.sheet);
 
     //Bacukup Ranges
     var backedupValues = [];
     if (sdePage.backupRanges != null)
+    {
       for (var i = 0; i < sdePage.backupRanges.length; i++) {
         var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
 
@@ -106,11 +131,12 @@ function buildSDEs(sdePage) {
         for (var r = 0; r < formulas.length; r++) {
           for (var c = 0; c < formulas[r].length; c++) {
             var formula = formulas[r][c];
+            var val = values[r][c];
             if (formula) {
-              cell.push(formulas[r][c]);
+              cell.push(formula);
             }
             else {
-              cell.push(values[r][c]);
+                cell.push(val);
             }
           }
           row.push(cell);
@@ -118,22 +144,12 @@ function buildSDEs(sdePage) {
         }
         backedupValues.push(row);
       }
+    }
 
     workSheet = createOrClearSdeSheet(sdePage.sheet);
-    let rows = [];
-    let cells = [];
-    for (var i = 0; i < csvData.length; i++) {
 
-      for (var j = 0; j < csvData[0].length; j++) {
-        cells.push(csvData[i][j]);
-      }
-
-      rows.push(cells);
-      cells = [];
-    }
-    let destinationRange = workSheet.getRange(1, 1, i, j);
-
-    destinationRange.setValues(rows);
+    var destinationRange = workSheet.getRange(1, 1, csvData.length, numCols = csvData[0].length);
+    destinationRange.setValues(csvData);
 
     //restore Backups
     if (sdePage.backupRanges != null)
@@ -159,7 +175,7 @@ function downloadTextData(csvFile) {
   const csvContent = UrlFetchApp.fetch(baseURL).getContentText();
 
   console.timeEnd("downloadTextData( csvFile:" + csvFile + " })");
-  return csvContent;
+  return csvContent.trim().replace(/\n$/, "");
 }
 
 
@@ -263,10 +279,12 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
   var arrMatches = null;
   var columnIndex = -1;
 
+try{
   // Keep looping over the regular expression matches
   // until we can no longer find a match.
   while (arrMatches = objPattern.exec(strData)) {
     columnIndex++;
+
     // Get the delimiter that was found.
     var strMatchedDelimiter = arrMatches[1];
 
@@ -311,101 +329,95 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
     // Skip row at column here?
 
 
-    let saveCollumn = false;
+    let saveColumn = false;
     if (!skipHeaders) {
       //allow only headers to pass
       if (headersIndex.indexOf(columnIndex) > -1) {
-        saveCollumn = true;
+        saveColumn = true;
       }
       //row 0 assume is headers
       if (headers.indexOf(strMatchedValue) > -1) {
         headersIndex.push(columnIndex);
-        saveCollumn = true;
+        saveColumn = true;
       }
     }
 
-    if (skipHeaders || saveCollumn) {
+    if (skipHeaders || saveColumn) {
 
-      let value = strMatchedValue.replace(gREGEX, "''$1").trim();
-      if (Number.isInteger(value))
-        arrData[arrData.length - 1].push(parseInt(value));
-      else if (isNumber(value))
-        arrData[arrData.length - 1].push(parseFloat(value));
-      else
-        arrData[arrData.length - 1].push(value);
-
+        if (Number.isInteger(strMatchedValue))
+          arrData[arrData.length - 1].push(parseInt(strMatchedValue));
+        else  if (isNumber(strMatchedValue))
+        arrData[arrData.length - 1].push(parseFloat(strMatchedValue));
+        else
+        {
+          if(strMatchedValue !=null){
+          let value = strMatchedValue.replace(gREGEX, "''$1");
+          arrData[arrData.length - 1].push(value.trim());
+          }
+          else
+           arrData[arrData.length - 1].push( strMatchedValue);
+        }
     }
 
   }
+}
+catch (e){
+throw e;
 
-
+}
   // Return the parsed data.
-  return (arrData);
+  return arrData;
 }
 function testSDE() {
+
   // Lock Formulas from running
-  const haltFormulas = [["Don't Load"], ["Don't Load"], ["Don't Load"], ["Don't Load"], ["Don't Load"], ["Don't Load"], ["Don't Load"], ["Don't Load"], ["Don't Load"]];
+  const haltFormulas = [[0,0]];
 
   var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-  var loadingHelper = thisSpreadSheet.getRangeByName("'Loading Helper'!C3:C11");
-  const backupSettings = loadingHelper.getValues();
+  var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
+  const  backupSettings = loadingHelper.getValues();
   loadingHelper.setValues(haltFormulas);
   try {
 
-    const sdePages = [
-      /**   new SdePage(
-           "SDE_sample",
-          "sample.csv",
-          [ "sample headers", "These are not required",]
-          ),*/
-      new SdePage(
-        "SDE ItemID",
-        "invTypes.csv",
-        /** Optional headers,  
-          * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
-        */
-        ["typeID", "groupID", "typeName", "published", "volume", "marketGroupID", "variationparentTypeID"]
-      ),
-      new SdePage(
-        "SDE GroupID",
-        "invGroups.csv",
-        ["groupID", "categoryID", "groupName", "published"]
-      ),
-      new SdePage(
-        "SDE CategoryID",
-        "invCategories.csv",
-        ["categoryID", "categoryName"]
-      ),//invMetaTypes.csv 
-      new SdePage(
-        "SDE Meta Types",
-        "invMetaTypes.csv",
-      ),
-      new SdePage(
-        "SDE Meta Groups",
-        "invMetaGroups.csv",
-        ["metaGroupID", "metaGroupName"]
-      ), //industryBlueprints.csv
-      new SdePage(
-        "SDE Blueprints",
-        "industryBlueprints.csv",
-        null,
-        ["'SDE Blueprints'!C1:D2"]
-      ),
-      new SdePage(
-        "SDE Probabilities",
-        "industryActivityProbabilities.csv",
-        ["typeID", "probability"]
-      ),
-      new SdePage(
-        "SDE Indy Products",
-        "industryActivityProducts.csv",
-        null,
-        ["'SDE Indy Products'!E1:E2"]
-      )
-    ];
+            const sdePages = [
+                new SdePage(
+                "SDE_invTypes",
+                "invTypes.csv",
+                  // Optional headers,  
+                  // invTypes is 100+ megabytes. Select columns needed to help it load faster. 
+                  [ "typeID","groupID","typeName","volume"]
+                  ),
+                new SdePage(
+                "SDE_industryActivityProducts",
+                "industryActivityProducts.csv",
+                  []
+                  ),
+                new SdePage(
+                "SDE_industryActivityMaterials",
+                "industryActivityMaterials.csv",
+                  []
+                  ),
+                new SdePage(
+                "SDE_invVolumes",
+                "invVolumes.csv",
+                  []
+                  ),
+                new SdePage(
+                "SDE_invGroups",
+                "invGroups.csv",
+                  ["groupID", "categoryID", "groupName"]
+                  )
+              ];
+               sdePages.forEach(buildSDEs);
+          let rangeList =
+          {
+            sde_group_category :"SDE_invGroups",
+            sde_activity_products : "SDE_industryActivityProducts",
+              sde_typeid_name : "SDE_invTypes" ,
+              sde_packaged_volume : "SDE_invVolumes"
 
-    //build the sde pages with each page configuration  
-    sdePages.forEach(sdePage => buildSDEs(sdePage));
+          }
+          setNamedRange(rangeList);
 
   }
   finally {
@@ -424,6 +436,62 @@ function isNumber(value) {
   return !isNaN(value - 0);
 }
 
+function testNamedRangeCreate()
+{
+  let rangeList =
+  {
+      sde_typeid_name : "SDE_invTypes" ,
+      sde_groups : "SDE_invGroups",
+      sde_volumes : "SDE_invVolumes",
+
+  }
+  setNamedRange(rangeList);
+}
+
+
+
+/**
+ *Sets a Named Range
+ * "sde_typeid_name", A:A,LastCol:LastRow
+ *
+ * @param {*} name
+ * @param {*} options
+ */
+ function setNamedRange(rangeList)
+{
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      let sheets = ss.getSheets();
+      const errors = [];
+    //  SpreadsheetApp.flush();
+      Object.entries(rangeList).forEach(entry  => 
+        {
+          try{
+             //   SpreadsheetApp.flush();
+          const [key, value] = entry;
+         const sheet = ss.getSheetByName(value);
+         // FIXME: Exceptions cause by Range Locked in another Process.
+        const rangeToSet = sheet.getRange(1,1,sheet.getLastRow(),sheet.getLastColumn());
+         ss.setNamedRange( key,rangeToSet);    
+          } 
+          catch(e)
+          {
+            const [key, value] = entry;
+          errors.push( new Error("Named Range Error: " & key));
+           errors.push(e);
+          }    
+        })
+/*           if (errors.length > 0) {
+          throw new Error(errors.join()); 
+        }*/
+        sheets.forEach(sheet => {
+          const namedRanges = sheet.getNamedRanges();
+          namedRanges.forEach(nRange => {
+            console.log(`Name: ${nRange.getName()} range: ${nRange.getRange().getA1Notation()}`);
+          });
+        });
+}
+
+
 /**
  * @param sheet Name of the tab to place the SDE data
  * @param csvFile Name of the file to download from Fuzworks
@@ -435,7 +503,7 @@ class SdePage {
   constructor(sheet, csvFile, headers = null, backupRanges = null) {
 
     this.sheet = sheet;
-
+    this.backupRanges = null;
     this.csvFile = csvFile;
 
     if (headers != null) {
@@ -448,5 +516,12 @@ class SdePage {
       if (!Array.isArray(backupRanges)) this.backupRanges = [backupRanges];
     }
 
+  }
+}
+
+class SDEError extends Error {
+  constructor(message = "", ...args) {
+    super(message, ...args);
+    this.message = message + " has not yet been implemented.";
   }
 }
