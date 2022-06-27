@@ -128,6 +128,69 @@ function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", 
 
   }
 
+  /**
+* MarketStat API for the given types
+*
+* @param {range} range A vertical range of type_ids.
+* @param {string} string location type
+* @param {string} string location Id
+* @param {string} string sell or buy. Defaults to sell.
+* @param {string} string min, max, or avg. Defaults to min.
+* @return result for each type_id. This can be configured differently.
+* @customfunction
+*/
+function marketStatData(type_ids, location_type, location_id, order_type = null, order_level = null) {
+
+  if (!type_ids) throw 'type_ids is required';
+  if(!Array.isArray(type_ids)) type_ids = [type_ids];
+  type_ids = type_ids.filter(Number) ;
+
+
+  if(order_type == null &&  order_level == null){
+    order_type = "sell";
+    order_level = "min";
+  }
+
+  if(order_type == null &&  order_level.toLowerCase() == "max") order_type = "buy";
+  if(order_type == null &&  order_level.toLowerCase() == "min") order_type= "sell";
+  if(order_type.toLowerCase() == "buy" &&  order_level == null) order_level = "max";
+  if(order_type.toLowerCase() == "sell" &&  order_level == null) order_level = "min";
+  order_type = order_type.toLowerCase(); order_level = order_level.toLowerCase();
+
+  // Configuration Section
+  switch(location_type.toLowerCase()){
+    case "region":
+    case "system":
+    case "station":
+      location_type = location_type.toLowerCase();
+      break;
+    default:
+     throw new Error("Location Undefined");
+  }
+
+  let price_data;
+  var result=[];
+
+
+// Capture overflow buffer
+
+  price_data = postFetch(type_ids,location_id,location_type)
+  for(var i=0 ; i < type_ids.length ; i++)
+  {
+    try
+    {
+        result = result.concat(parseFloat(price_data[type_ids[i]][order_type][order_level]));
+    }
+    catch(error) // Value not on market, Leave Blank cell
+    {
+      result = result.concat("");
+    }
+  }
+
+
+return result;
+}
+
 /**
  *Pull Prce data from Fuzworks using Post request method
  *
@@ -138,6 +201,9 @@ function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", 
  */
 function postFetch(type_ids,location_id,location_type="station")
   {
+    if (!type_ids) throw 'type_ids is required';
+    if(!Array.isArray(type_ids)) type_ids = [type_ids];
+    type_ids = type_ids.filter(Number) ;
      /*
       * Configuration Section
       */
@@ -145,7 +211,7 @@ function postFetch(type_ids,location_id,location_type="station")
         throw new Error("Invalid location_type, must be either 'region' or 'station' or 'system'")
  
     const service_url = "https://market.fuzzwork.co.uk/aggregates/";
-    var data ={};
+    let data ={};
     switch(location_type)
     {
       case "system":
