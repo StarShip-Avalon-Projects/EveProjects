@@ -185,7 +185,7 @@ function postFetch(type_ids,location_id,location_type="station")
 
     var response = UrlFetchApp.fetch(service_url, options);
     if(response.getResponseCode() != 200)
-      throw new Error("Fuzworks broke with error code:"+response.getResponseCode())
+      throw new Error("Fuzworks broke with error code:" + response.getResponseCode())
     return JSON.parse(response.getContentText());
 
   }
