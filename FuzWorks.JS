@@ -39,26 +39,6 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub = 60003760, order_type = 
     if(!Array.isArray(type_ids)) type_ids = [type_ids];
     type_ids = type_ids.filter(Number) ;
 
-var market_hub_id ="station=60003760";
-    // Guaurd Syntax "station=" or "region=###""
-    // Dewfault to Station
-    if( isNumber(market_hub))
-    {
-      if (market_hub > 0)
-      {
-         market_hub_id = "station=" + market_hub.toString();
-      }
-
-    }
-    else{
-    market_hub_id = market_hub;
-    }
-    var check =  market_hub_id.split('=');
-
-
-    if(check[0] !='region' && check[0] !='station' && check[0] !='system')
-    throw new Error("Market hub must be integer or a parameter starting with 'region=' or 'station=' or 'system='")
-
     if(order_type == null &&  order_level == null){
       order_type = "sell";
       order_level = "min";
@@ -70,89 +50,30 @@ var market_hub_id ="station=60003760";
     if(order_type.toLowerCase() == "sell" &&  order_level == null) order_level = "min";
     order_type = order_type.toLowerCase(); order_level = order_level.toLowerCase();
 
-      /*
-      * Configuration Section
-      */
-    const service_url = "https://market.fuzzwork.co.uk/aggregates/?" + market_hub_id +"&types=";
-    const safe_item_limit = 200; // Some Endpoint services are limited to 200 integers
-  
       let price_data;
       var result=[];
-
-    let safe_id_set= [];
-    let safe_item_index = 0; 
-
-    if(type_ids.length < safe_item_limit)
-    {
-      price_data =  JSON.parse(UrlFetchApp.fetch(service_url + type_ids.join(",")));
-      for(var currentIndex=0 ; currentIndex < type_ids.length ; currentIndex++)
-      {
-        try
-        {
-            result = result.concat(parseFloat(price_data[type_ids[currentIndex]][order_type][order_level]));
-        }
-        catch(error) // Value not on market, Leave Blank cell
-        {
-            result = result.concat("");
-        }
-      }
-
-      return result;
-    }
   
-
-  
-
-    
-    for (i = 0; i < type_ids.length - 1  ;i++)
-      {
-          // Copy itemss into a Safe Array
-        safe_id_set.push(type_ids[i]);
-  
-       //Once Full, Grab the data result
-        if (safe_item_index > safe_item_limit)
-        {
-          price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-          for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
-          {
-            try
-            {
-            result = result.concat(parseFloat(price_data[safe_id_set[currentIndex]][order_type][order_level]));
-            }
-            catch(error) // Value not on market, Leave Blank cell
-            {
-                result = result.concat("");
-            }
-          }
-          //Reset the request buffer for the next set
-          safe_item_index = 0;
-          safe_id_set = [];
-        }
-        safe_item_index++;
-      }
 
   // Capture overflow buffer
-    if(safe_id_set.length > 0)
-    {
-      price_data = JSON.parse(UrlFetchApp.fetch(service_url + safe_id_set.join(",")));
-      for(currentIndex=0 ; currentIndex < safe_id_set.length ; currentIndex++)
+
+      price_data = postFetch(type_ids,market_hub,"station")
+      for(var i=0 ; i < type_ids.length ; i++)
       {
         try
         {
-            result = result.concat(parseFloat(price_data[safe_id_set[currentIndex]][order_type][order_level]));
+            result = result.concat(parseFloat(price_data[type_ids[i]][order_type][order_level]));
         }
         catch(error) // Value not on market, Leave Blank cell
         {
           result = result.concat("");
         }
       }
-    }
+    
     
     return result;
   }
 
-
-  /**
+/**
 * Fuzz market API for the given types
 *
 * @param {range} range A vertical range of type_ids.
@@ -204,6 +125,68 @@ function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", 
     // result
     return fuzzApiPriceDataJitaSell(type_ids,market_hub,order_type,order_level);
   
+
+  }
+
+/**
+ *Pull Prce data from Fuzworks using Post request method
+ *
+ * @param {*} type_ids
+ * @param {*} location_id
+ * @param {string} [location_type="station"] station, region, or system
+ * @return {price_data} array 
+ */
+function postFetch(type_ids,location_id,location_type="station")
+  {
+     /*
+      * Configuration Section
+      */
+    if(location_type !='region' && location_type !='station' && location_type !='system')
+        throw new Error("Invalid location_type, must be either 'region' or 'station' or 'system'")
+ 
+    const service_url = "https://market.fuzzwork.co.uk/aggregates/";
+    var data ={};
+    switch(location_type)
+    {
+      case "system":
+      {
+          data = {
+            "system" : location_id,
+            "types" : type_ids.join(",")
+          };
+          break;
+      }
+      case "region":
+      {
+          data = {
+            "region" : location_id,
+            "types" : type_ids.join(",")
+          };
+          break;
+      }
+      case  "station" :
+      {
+          data = {
+            "station" : location_id,
+            "types" : type_ids.join(",")
+          };
+          break;
+      }
+      default:
+        throw new Error("Invalid location_type.")
+    }
+
+    const payload = JSON.stringify(data);
+    const options = {
+      "method" : "POST",
+      "contentType" : "application/json",
+      "payload" : payload
+    };
+
+    var response = UrlFetchApp.fetch(service_url, options);
+    if(response.getResponseCode() != 200)
+      throw new Error("Fuzworks broke with error code:"+response.getResponseCode())
+    return JSON.parse(response.getContentText());
 
   }
   
