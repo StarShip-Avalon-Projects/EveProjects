@@ -34,7 +34,8 @@ function testfuzAPI()
 * Author: unknown
 * Modified by CJ Kilman 11/19/2021 Added Configuration options and a Safe request buffer to avoide overloading the service get requesgt method
 */
-function fuzzApiPriceDataJitaSell(type_ids, market_hub = 60003760, order_type = null ,order_level=null) {
+function fuzzApiPriceDataJitaSell(type_ids, market_hub = 60003760, order_type = null ,order_level=null)
+{
     if (!type_ids) throw 'type_ids is required';
     if(!Array.isArray(type_ids)) type_ids = [type_ids];
     type_ids = type_ids.filter(Number) ;
@@ -86,11 +87,15 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub = 60003760, order_type = 
 * Modified by CJ Kilman 11/19/2021 Added configuration options and a Safe request buffer to avoid overloading the service get request method
 * Modified by Snowdevil / Highfly Chastot 12/16/2021 Added functionality for choosing hub, type, and level. Little refactoring, could use more.
 */
-function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", order_level = null) {
+function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", order_level = null) 
+{
     // Safety net
     if (!type_ids) throw 'type_ids is required';
     // Select hub ID, can ONLY use major trade hubs with this API
-    switch (market_hub.toLowerCase()) {
+try{
+  market_hub  = market_hub.toLowerCase();
+}catch{}
+    switch (market_hub) {
     case 'amarr':
         market_hub = 60008494;
         break;
@@ -103,9 +108,13 @@ function fuzzPriceDataByHub(type_ids, market_hub = "Jita", order_type = "sell", 
     case 'hek':
         market_hub = 60005686;
         break; 
+     
     case 'jita':
+    market_hub = 60003760;
+  break;
     default:
-        market_hub = 60003760;
+     
+     
     }
     
     //deal with defaults on most used order types
