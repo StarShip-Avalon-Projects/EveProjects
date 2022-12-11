@@ -1,5 +1,5 @@
 /**
- * Verson: 1.04
+ * Verson: 1.05
   * Import SDE_invTypes from Fuzworks CSV files.
   *  Author: CJ Kilman
   *  Free to use and modify, Do not remove header.
@@ -75,7 +75,7 @@ function onOpen() {
           ),
       ];
       sdePages.forEach(buildSDEs);
-
+/* Experimental Method to set Named ranges on update
       let rangeList =
       {
           sde_typeid_name : "SDE_invTypes" ,
@@ -83,7 +83,7 @@ function onOpen() {
           sde_volumes : "SDE_invVolumes",
           sde_reprocess_materials : "SDE_reprocessingMaterials"
       }
-      setNamedRange(rangeList);
+      setNamedRange(rangeList);* /
         }
     finally{
           // release lock
