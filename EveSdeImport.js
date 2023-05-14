@@ -1,5 +1,5 @@
 /**
- * Verson: 1.04
+ * Verson: 1.05
   * Import SDE_invTypes from Fuzworks CSV files.
   *  Author: CJ Kilman
   *  Free to use and modify, Do not remove header.
@@ -75,7 +75,7 @@ function onOpen() {
           ),
       ];
       sdePages.forEach(buildSDEs);
-
+/* Experimental Method to set Named ranges on update
       let rangeList =
       {
           sde_typeid_name : "SDE_invTypes" ,
@@ -83,7 +83,7 @@ function onOpen() {
           sde_volumes : "SDE_invVolumes",
           sde_reprocess_materials : "SDE_reprocessingMaterials"
       }
-      setNamedRange(rangeList);
+      setNamedRange(rangeList);* /
         }
     finally{
           // release lock
@@ -282,7 +282,7 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 try{
   // Keep looping over the regular expression matches
   // until we can no longer find a match.
-  while (arrMatches = objPattern.exec(strData)) {
+  while (arrMatches = objPattern.exec(strData.trim())) {
     columnIndex++;
 
     // Get the delimiter that was found.
@@ -438,14 +438,29 @@ function isNumber(value) {
 
 function testNamedRangeCreate()
 {
-  let rangeList =
-  {
-      sde_typeid_name : "SDE_invTypes" ,
-      sde_groups : "SDE_invGroups",
-      sde_volumes : "SDE_invVolumes",
+    // Lock Formulas from running
+  const haltFormulas = [[0,0]];
+  
+    var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+    var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
+  const  backupSettings = loadingHelper.getValues();
+  loadingHelper.setValues(haltFormulas);
+  try {
+    let rangeList =
+    {
+      sde_group_category : "SDE_invGroups",
+      sde_activity_products : "SDE_industryActivityProducts",
+        sde_typeid_name : "SDE_invTypes" ,
+        sde_packaged_volume : "SDE_invVolumes"
 
+    }
+    setNamedRange(rangeList);
+
+      }
+  finally {
+    // release lock
+    loadingHelper.setValues(backupSettings);
   }
-  setNamedRange(rangeList);
 }
 
 
