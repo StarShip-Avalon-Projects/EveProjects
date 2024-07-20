@@ -5,20 +5,9 @@ function testfuzAPI()
 {
   let ids = [
     16239,
-16243,
-24030,
-32881,
-17366,
-16273,
-34206,
-34202,
-34203,
-34205,
-34204,
-34201,
-19761,
-42695,
-42830
+    34
+
+
   ];
   return fuzzApiPriceDataJitaSell(ids);
 }
@@ -62,7 +51,11 @@ function fuzzApiPriceDataJitaSell(type_ids, market_hub = 60003760, order_type = 
       {
         try
         {
-            result = result.concat(parseFloat(price_data[type_ids[i]][order_type][order_level]));
+          let value = parseFloat(price_data[type_ids[i]][order_type][order_level]);
+          if(isNumber(value))
+            result = result.concat(value);
+          else
+            result = result.concat("");
         }
         catch(error) // Value not on market, Leave Blank cell
         {
@@ -141,7 +134,7 @@ try{
 * MarketStat API for the given types
 *
 * @param {range} range A vertical range of type_ids.
-* @param {string} string location type
+* @param {string} string location type Market Range. Aceptable values Station, System, Region
 * @param {string} string location Id
 * @param {string} string sell or buy. Defaults to sell.
 * @param {string} string min, max, or avg. Defaults to min.
@@ -188,7 +181,11 @@ function marketStatData(type_ids, location_type, location_id, order_type = null,
   {
     try
     {
-        result = result.concat(parseFloat(price_data[type_ids[i]][order_type][order_level]));
+          let value = parseFloat(price_data[type_ids[i]][order_type][order_level]);
+          if(isNumber(value))
+            result = result.concat(value);
+          else
+            result = result.concat("");
     }
     catch(error) // Value not on market, Leave Blank cell
     {
@@ -265,3 +262,155 @@ function postFetch(type_ids,location_id,location_type="station")
 
   }
   
+
+    /**
+* All current Market Stats API for the given types
+*
+* @param {range} range A vertical range of type_ids.
+* @param {string} string location type Market Range. Aceptable values Station, System, Region
+* @param {string} string location Id
+* @param {string} show_colums Show column headers. default:true
+* @return result for each type_id.
+* @customfunction
+*/
+  function allMarketStats(type_ids, location_type, location_id,show_colums=true) {
+
+    if (!type_ids) throw 'type_ids is required';
+    if(!Array.isArray(type_ids)) type_ids = [type_ids];
+    type_ids = type_ids.filter(Number) ;
+  
+  
+    // Configuration Section
+    switch(location_type.toLowerCase()){
+      case "region":
+      case "system":
+      case "station":
+        location_type = location_type.toLowerCase();
+        break;
+      default:
+       throw new Error("Location Undefined");
+    }
+  
+    let price_data;
+    var result=[[]];
+  if(show_colums)
+    result=[[
+        "buy_weightedAverage",
+       "buy_max",
+       "buy_min",
+       "buy_stddev",
+       "buy_median",
+       "buy_volume",
+       "buy_order_count",
+       "buy_percentile",
+       "sell_weightedAverage",
+       "sell_max",
+       "sell_min",
+       "sell_stddev",
+       "sell_median",
+       "sell_volume",
+       "sell_order_count",
+       "sell_percentile"
+  ]];
+  
+  // Capture overflow buffer
+  
+    price_data = postFetch(type_ids,location_id,location_type);
+    for(var i=0 ; i < type_ids.length ; i++)
+    {
+        var row =[];
+
+        let value = "";
+
+
+        let order_type = "buy";
+           value = parseFloat(price_data[type_ids[i]][order_type]["weightedAverage"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["max"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["min"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["stddev"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["median"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["volume"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseInt(price_data[type_ids[i]][order_type]["orderCount"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["percentile"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            
+
+            order_type = "sell";
+            value = parseFloat(price_data[type_ids[i]][order_type]["weightedAverage"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["max"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["min"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["stddev"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["median"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["volume"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseInt(price_data[type_ids[i]][order_type]["orderCount"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+            value = parseFloat(price_data[type_ids[i]][order_type]["percentile"]);
+                if(isNumber(value))
+                row = row.concat(value);
+                else
+                row = row.concat("");
+
+      result = result.concat([row]);
+    }
+  
+  
+  return result;
+  }
