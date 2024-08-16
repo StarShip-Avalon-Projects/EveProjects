@@ -60,7 +60,7 @@ function importSDE() {
 }
 ```
 
-# GESI wrappers
+# GESI wrappers (depreciated)
 
 This will enable existing google sheets with Eve Authorized characters to work.
 They're not in tended for New Sheets or Adding new characters to the sheet GESI installer isn't working properly.
