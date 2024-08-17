@@ -21,8 +21,9 @@ function importSDE() {
 
   // If the user agrees to continue, proceed with the import.
   if (response == ui.Button.YES) {
-    // Prevent formulas from running while the import is in progress.
-    const haltFormulas = [[0, 0]];
+
+      // Lock Formulas from running
+      const haltFormulas = [[0,0]];
 
     const thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
     const loadingHelper = thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
@@ -136,8 +137,11 @@ function deleteBlankColumnsAndColumns(workSheet) {
   if (columnsToRemove > 0) {
     workSheet.deleteColumns(lastColumn + 1, columnsToRemove);
   }
-  if (rowsToRemove > 0) {
-    workSheet.deleteRows(lastRow + 1, rowsToRemove);
+  if (lastRows < rowsReset) { //save 2 columns on a new sheet
+    lastRows = rowsReset;
+  }
+  if (maxRows - lastRows != 0) {
+    workSheet.deleteRows(lastRows + 1, maxRows - lastRows);
   }
 }
 
@@ -187,7 +191,8 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
         if (headersIndex.includes(columnIndex)) {
           saveColumn = true;
         }
-        if (headers.includes(strMatchedValue)) {
+      //row 0 assume is headers
+      if (headers.indexOf(strMatchedValue) > -1) {
           headersIndex.push(columnIndex);
           saveColumn = true;
         }
@@ -210,12 +215,64 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 
   return arrData;
 }
+function testSDE() {
 
-/**
- * Checks if a value is a number.
- * @param {*} value - The value to check.
- * @returns {boolean} - True if the value is a number, false otherwise.
- */
+  // Lock Formulas from running
+  const haltFormulas = [[0,0]];
+
+  var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+  var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
+  const  backupSettings = loadingHelper.getValues();
+  loadingHelper.setValues(haltFormulas);
+  try {
+
+            const sdePages = [
+                new SdePage(
+                "SDE_invTypes",
+                "invTypes.csv",
+                  // Optional headers,  
+                  // invTypes is 100+ megabytes. Select columns needed to help it load faster. 
+                  [ "typeID","groupID","typeName","volume"]
+                  ),
+                new SdePage(
+                "SDE_industryActivityProducts",
+                "industryActivityProducts.csv",
+                  []
+                  ),
+                new SdePage(
+                "SDE_industryActivityMaterials",
+                "industryActivityMaterials.csv",
+                  []
+                  ),
+                new SdePage(
+                "SDE_invVolumes",
+                "invVolumes.csv",
+                  []
+                  ),
+                new SdePage(
+                "SDE_invGroups",
+                "invGroups.csv",
+                  ["groupID", "categoryID", "groupName"]
+                  )
+              ];
+               sdePages.forEach(buildSDEs);
+          let rangeList =
+          {
+            sde_group_category :"SDE_invGroups",
+            sde_activity_products : "SDE_industryActivityProducts",
+              sde_typeid_name : "SDE_invTypes" ,
+              sde_packaged_volume : "SDE_invVolumes"
+
+          }
+          setNamedRange(rangeList);
+
+  }
+  finally {
+    // release lock
+    loadingHelper.setValues(backupSettings);
+  }
+}
+
 function isNumber(value) {
   return value !== undefined && value !== null && !isNaN(value);
 }
