@@ -12,6 +12,7 @@
  * Copy this function to a file like "main.js. This helps upgrades by replacing this file."
  */
 /*
+/**
 function importSDE() {
   // Get the user interface for the current spreadsheet.
   const ui = SpreadsheetApp.getUi();
