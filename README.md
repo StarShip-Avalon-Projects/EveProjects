@@ -49,7 +49,12 @@ function importSDE() {
          * invTypes is 100+ megabytes. Select Columns needed to help it laod faster.
          */
         ["typeID", "groupID", "typeName", "mass", "volume"]
-      ), //,
+      ),
+        new SdePage(
+        "SDE_industryActivityMaterials",
+        "industryActivityMaterials.csv",
+          [],
+          "'SDE_industryActivityMaterials'!E1:E2"), // ex: E2 =IF(Utility!C3 <>1,,ARRAYFORMULA(IFNA(IF(IFS(B2:B=1,TRUE,B2:B=11,true)=false,0,SUMIF('ESI Adjusted Price'!C:C,C2:C,'ESI Adjusted Price'!A:A)*D2:D),0)))
     ];
     sdePages.forEach((page) => buildSDEs(page));
   } else if (response == ui.Button.NO) {
