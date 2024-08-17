@@ -1,64 +1,40 @@
 /**
- * Verson: 1.05
-  * Import SDE_invTypes from Fuzworks CSV files.
-  *  Author: CJ Kilman
-  *  Free to use and modify, Do not remove header.
+ * Version: 1.05
+ * Author: CJ Kilman
+ * Free to use and modify, Do not remove header.
   *
-  * Change Log:
-  * 6.16.1022 Fixed Ghost taling rows due to pesky trailing newlin and whitespaces in the Fuzworks feed
-  * Added Named Range support for SDE Tables
+ * This script imports SDE_invTypes data from Fuzworks CSV files into a Google Spreadsheet.
+ * It includes functions for handling CSV data, managing spreadsheet sheets, and setting named ranges.
   */
 
 /**
-* ref: https://blog.ouseful.info/2010/03/11/writing-2d-data-arrays-to-a-google-spreadsheet-from-google-apps-script-making-an-http-post-request-for-csv-data/
+ * Sample function to import SDE_invTypes from Fuzworks CSV files.
+ * Copy this function to a file like "main.js. This helps upgrades by replacing this file."
  */
+/*
+function importSDE() {
+  // Get the user interface for the current spreadsheet.
+  const ui = SpreadsheetApp.getUi();
 
-/** Sample add menu option
- *  It is recodmended to copy this to a different script such as Main.js. Some place to keep your 
- * configeration stuff safe as this file is subject to modifcations.
-function onOpen() {
-    var ui = SpreadsheetApp.getUi();
-    // Or DocumentApp or FormApp.
-    ui.createMenu('Sheet Tools')
-        .addItem('Import SDE Data', 'importSDE')
-        .addToUi();
-  }
-  */
-/**
-  * Import SDE_invTypes from Fuzworks CSV files.
-  * ref: https://blog.ouseful.info/2010/03/11/writing-2d-data-arrays-to-a-google-spreadsheet-from-google-apps-script-making-an-http-post-request-for-csv-data/
-*/
-
-/**
- * SED Loader : Runs each SDE update
- * Sample Function
- * It is recodmended to copy this to a different script such as Main.js. Some place to keep your 
- * configeration stuff safe as this file is subject to modifcations.
- */
-/**function importSDE()
-{
-    // Display an alert box with a title, message, input field, and "Yes" and "No" buttons. The
-    // user can also close the dialog by clicking the close button in its title bar.
-    var ui = SpreadsheetApp.getUi();
-
-    var response = ui.alert('Updating the SDE', 
-        'Updating the SDE may take several minutes. In the meantime do not close the window otherwise you will have to restart. Continue?',
+  // Display an alert to inform the user about the update process.
+  const response = ui.alert('Updating the SDE',
+    'Updating the SDE may take several minutes. Do not close the window, or you will have to restart. Continue?',
         ui.ButtonSet.YES_NO);
 
-        
-    // Process the user's response.
+  // If the user agrees to continue, proceed with the import.
     if (response == ui.Button.YES) {
 
-      // Lock Formulas from running
+      // Lock Formulas from running 
+      // sample foromula with lock "=If(Utility!B3 <> 1,, IF(setting_iscorp = False, "", corporations_corporation_assets(setting_director)) )"
       const haltFormulas = [[0,0]];
 
-      var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-      var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
-      const  backupSettings = loadingHelper.getValues();
+    const thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+    const loadingHelper = thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
+    const backupSettings = loadingHelper.getValues();
       loadingHelper.setValues(haltFormulas); 
 
-      try{
-
+    try {
+      // Define the SDE pages to import, specifying the sheet name, CSV file, and required columns which are OPTIONAL.
     const sdePages = [
     /**   new SdePage(
           "SDE_sample",
@@ -66,8 +42,8 @@ function onOpen() {
           [ "sample headers", "These are not required",]
           ),*
         new SdePage(
-        "SDE_invTypes",
-        "invTypes.csv",
+        "SDE_invTypes", //sheet tab title
+        "invTypes.csv", // fuzworks file name
           /** Optional headers,  
            * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
 
@@ -75,18 +51,8 @@ function onOpen() {
           ),
       ];
       sdePages.forEach(buildSDEs);
-/* Experimental Method to set Named ranges on update
-      let rangeList =
-      {
-          sde_typeid_name : "SDE_invTypes" ,
-          sde_groups : "SDE_invGroups",
-          sde_volumes : "SDE_invVolumes",
-          sde_reprocess_materials : "SDE_reprocessingMaterials"
-      }
-      setNamedRange(rangeList);* /
-        }
-    finally{
-          // release lock
+    } finally {
+      // Restore the original formula settings.
           loadingHelper.setValues(backupSettings); 
         }
 
@@ -99,14 +65,14 @@ function onOpen() {
   }*/
 
 /**
- * 
- * @param {*} sheetName Name of the Sheet (aka Tab)
- * @param {*} csvFile Name of SED to download from Fuzworks
+ * Downloads and processes the CSV data for the specified SDE page.
+ * @param {Object} sdePage - Object containing sheet name, CSV file name, and headers.
  */
- function buildSDEs(sdePage) {
-  if (sdePage == null)
-    throw "sdePage is required";
-  console.time("imortSDEinvTypes( sheetName:" + sdePage.sheet + ", csvFile:" + sdePage.csvFile + "  })");
+function buildSDEs(sdePage) {
+  if (sdePage == null) throw "sdePage is required";
+  console.time("importSDEinvTypes( sheetName:" + sdePage.sheet + ", csvFile:" + sdePage.csvFile + " )");
+
+  // Download CSV content and convert it to a 2D array.
   const csvContent = downloadTextData(sdePage.csvFile);
   const csvData = CSVToArray(csvContent, ",", sdePage.headers);
 
@@ -148,81 +114,75 @@ function onOpen() {
 
     workSheet = createOrClearSdeSheet(sdePage.sheet);
 
-    var destinationRange = workSheet.getRange(1, 1, csvData.length, numCols = csvData[0].length);
+    // Write the CSV data to the sheet.
+    const destinationRange = workSheet.getRange(1, 1, csvData.length, csvData[0].length);
     destinationRange.setValues(csvData);
 
-    //restore Backups
-    if (sdePage.backupRanges != null)
-      for (var i = 0; i < sdePage.backupRanges.length; i++) {
-        var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
-        backupRange.setValues(backedupValues[i]);
-
-      }
-
-    deleteBlankColumnsAndCollumns(workSheet);
-  }
-  catch (e) {
+    // Remove any blank columns or rows.
+    deleteBlankColumnsAndColumns(workSheet);
+  } catch (e) {
     throw e;
   }
 
-  console.timeEnd("imortSDEinvTypes( sheetName:" + sdePage.sheet + ", csvFile:" + sdePage.csvFile + " )")
+  console.timeEnd("importSDEinvTypes( sheetName:" + sdePage.sheet + ", csvFile:" + sdePage.csvFile + " )");
 }
 
+/**
+ * Downloads text data from the given CSV file URL.
+ * @param {string} csvFile - Name of the CSV file to download.
+ * @returns {string} - The downloaded CSV content.
+ */
 function downloadTextData(csvFile) {
-  console.time("downloadTextData( csvFile:" + csvFile + " })");
+  console.time("downloadTextData( csvFile:" + csvFile + " )");
 
   const baseURL = 'https://www.fuzzwork.co.uk/dump/latest/' + csvFile;
   const csvContent = UrlFetchApp.fetch(baseURL).getContentText();
 
-  console.timeEnd("downloadTextData( csvFile:" + csvFile + " })");
+  console.timeEnd("downloadTextData( csvFile:" + csvFile + " )");
   return csvContent.trim().replace(/\n$/, "");
 }
 
-
 /**
- * Creates a blank sheet or resets Existing sheet
- * @param {*} sheetName  Expected String, Name of Sheet (tab name)
- * @returns Blank Sheet
+ * Creates a new sheet or clears an existing sheet.
+ * @param {string} sheetName - Name of the sheet to create or clear.
+ * @returns {Sheet} - The created or cleared sheet.
  */
 function createOrClearSdeSheet(sheetName) {
-  console.time("createOrClearSdeSheet({sheetName:" + sheetName + "}})");
-  if (sheetName === null || sheetName === "")
-    throw "sheet name is required;";
-  let activeSheet = SpreadsheetApp.getActiveSpreadsheet();
+  console.time("createOrClearSdeSheet({sheetName:" + sheetName + "})");
+  if (!sheetName) throw "sheet name is required;";
+
+  const activeSheet = SpreadsheetApp.getActiveSpreadsheet();
   let workSheet = activeSheet.getSheetByName(sheetName);
 
-  //found the Sheet, Clear it and Move on
-  if (workSheet != null) {
+  // If the sheet exists, clear its contents; otherwise, create a new sheet.
+  if (workSheet) {
     workSheet.clearContents();
-
-    console.timeEnd("createOrClearSdeSheet({sheetName:" + sheetName + "}})");
-    return workSheet;
-  }
-  //assume new sheet
+  } else {
   workSheet = activeSheet.insertSheet();
   workSheet.setName(sheetName);
-  console.timeEnd("createOrClearSdeSheet({sheetName:" + sheetName + "}})");
+  }
+
+  console.timeEnd("createOrClearSdeSheet({sheetName:" + sheetName + "})");
   return workSheet;
 }
 
-function deleteBlankColumnsAndCollumns(workSheet) {
-  if (workSheet == null)
-    throw ("workSheet not defined")
-  let maxColumns = workSheet.getMaxColumns();
-  let lastColumns = workSheet.getLastColumn();
-  let maxRows = workSheet.getMaxColumns();
-  let lastRows = workSheet.getLastColumn();
+/**
+ * Deletes any blank columns or rows from the specified sheet.
+ * @param {Sheet} workSheet - The sheet to process.
+ */
+function deleteBlankColumnsAndColumns(workSheet) {
+  if (!workSheet) throw "workSheet not defined";
 
-  if (maxRows - lastRows == 0 && maxColumns - lastColumns == 0) return;
+  const maxColumns = workSheet.getMaxColumns();
+  const lastColumn = workSheet.getLastColumn();
+  const maxRows = workSheet.getMaxRows();
+  const lastRow = workSheet.getLastRow();
 
-  const columnsReset = 2;
-  const rowsReset = 2;
+  const columnsToRemove = maxColumns - lastColumn;
+  const rowsToRemove = maxRows - lastRow;
 
-  if (lastColumns < columnsReset) { //save 2 columns on a new sheet
-    lastColumns = columnsReset;
-  }
-  if (maxColumns - lastColumns != 0) {
-    workSheet.deleteColumns(lastColumns + 1, maxColumns - lastColumns);
+  if (columnsToRemove > 0) {
+    workSheet.deleteColumns(lastColumn + 1, columnsToRemove);
   }
   if (lastRows < rowsReset) { //save 2 columns on a new sheet
     lastRows = rowsReset;
@@ -230,109 +190,56 @@ function deleteBlankColumnsAndCollumns(workSheet) {
   if (maxRows - lastRows != 0) {
     workSheet.deleteRows(lastRows + 1, maxRows - lastRows);
   }
-
 }
 
-
-
-
-// ref: http://stackoverflow.com/a/1293163/2343
-// This will parse a delimited string into an array of
-// arrays. The default delimiter is the comma, but this
-// can be overriden in the second argument.
+/**
+ * Parses a CSV string into a 2D array.
+ * @param {string} strData - The CSV string to parse.
+ * @param {string} strDelimiter - The delimiter used in the CSV string.
+ * @param {Array} headers - Array of headers to filter columns.
+ * @returns {Array} - The parsed 2D array.
+ */
 function CSVToArray(strData, strDelimiter = ",", headers = null) {
-
-  const skipHeaders = (headers == null || headers.length == 0 || headers[0] == null);
+  const skipHeaders = !headers || !headers.length || !headers[0];
   let headersIndex = [];
-  // Check to see if the delimiter is defined. If not,
-  // then default to comma.
-  strDelimiter = (strDelimiter || ",");
+  strDelimiter = strDelimiter || ",";
 
-  // Create a regular expression to parse the CSV values.
-  var objPattern = new RegExp(
-    (
-      // Delimiters.
-      "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-
-      // Quoted fields.
-      "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-
-      // google leading apostrophe
-      // ('+)
-
-      // Standard fields.
-      "([^\"\\" + strDelimiter + "\\r\\n]*))"
-
-    ),
+  const objPattern = new RegExp(
+    `(${strDelimiter}|\\r?\\n|\\r|^)(?:"([^"]*(?:""[^"]*)*)"|([^"\\${strDelimiter}\\r\\n]*))`,
     "gi"
   );
 
   const gREGEX = /^'+(.*)$/gm;
-  // Fix Google String?
+  let arrData = [[]];
+  let arrMatches = null;
+  let columnIndex = -1;
 
-  // Create an array to hold our data. Give the array
-  // a default empty first row.
-  var arrData = [[]];
-
-  // Create an array to hold our individual pattern
-  // matching groups.
-  var arrMatches = null;
-  var columnIndex = -1;
-
-try{
-  // Keep looping over the regular expression matches
-  // until we can no longer find a match.
-  while (arrMatches = objPattern.exec(strData.trim())) {
+  try {
+    while ((arrMatches = objPattern.exec(strData.trim()))) {
     columnIndex++;
 
-    // Get the delimiter that was found.
-    var strMatchedDelimiter = arrMatches[1];
+      const strMatchedDelimiter = arrMatches[1];
 
-
-    // Check to see if the given delimiter has a length
-    // (is not the start of string) and if it matches
-    // field delimiter. If id does not, then we know
-    // that this delimiter is a row delimiter.
-    if (
-      strMatchedDelimiter.length &&
-      strMatchedDelimiter !== strDelimiter
-    ) {
-
-      // Since we have reached a new row of data,
-      // add an empty row to our data array.
+      if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
       arrData.push([]);
       columnIndex = 0;
 
     }
 
-    var strMatchedValue;
+      let strMatchedValue;
 
     // Now that we have our delimiter out of the way,
     // let's check to see which kind of value we
     // captured (quoted or unquoted).
     if (arrMatches[2]) {
-
-      // We found a quoted value. When we capture
-      // this value, unescape any double quotes.
-      strMatchedValue = arrMatches[2].replace(
-        new RegExp("\"\"", "g"),
-        "\""
-      );
-
-    }
-    else {
-
-      // We found a non-quoted value.
+        strMatchedValue = arrMatches[2].replace(/""/g, '"');
+      } else {
       strMatchedValue = arrMatches[3];
-
     }
-    // Skip row at column here?
-
 
     let saveColumn = false;
     if (!skipHeaders) {
-      //allow only headers to pass
-      if (headersIndex.indexOf(columnIndex) > -1) {
+        if (headersIndex.includes(columnIndex)) {
         saveColumn = true;
       }
       //row 0 assume is headers
@@ -343,29 +250,20 @@ try{
     }
 
     if (skipHeaders || saveColumn) {
-
-        if (Number.isInteger(strMatchedValue))
+        if (Number.isInteger(strMatchedValue)) {
           arrData[arrData.length - 1].push(parseInt(strMatchedValue));
-        else  if (isNumber(strMatchedValue))
+        } else if (isNumber(strMatchedValue)) {
         arrData[arrData.length - 1].push(parseFloat(strMatchedValue));
-        else
-        {
-          if(strMatchedValue !=null){
+        } else {
           let value = strMatchedValue.replace(gREGEX, "''$1");
           arrData[arrData.length - 1].push(value.trim());
           }
-          else
-           arrData[arrData.length - 1].push( strMatchedValue);
         }
     }
-
+  } catch (e) {
+    throw e;
   }
-}
-catch (e){
-throw e;
 
-}
-  // Return the parsed data.
   return arrData;
 }
 function testSDE() {
@@ -412,44 +310,7 @@ function testSDE() {
           let rangeList =
           {
             sde_group_category :"SDE_invGroups",
-            sde_activity_products : "SDE_industryActivityProducts",
-              sde_typeid_name : "SDE_invTypes" ,
-              sde_packaged_volume : "SDE_invVolumes"
-
-          }
-          setNamedRange(rangeList);
-
-  }
-  finally {
-    // release lock
-    loadingHelper.setValues(backupSettings);
-  }
-}
-
-function isNumber(value) {
-  if ((undefined === value) || (null === value)) {
-    return false;
-  }
-  if (typeof value == 'number') {
-    return true;
-  }
-  return !isNaN(value - 0);
-}
-
-function testNamedRangeCreate()
-{
-    // Lock Formulas from running
-  const haltFormulas = [[0,0]];
-  
-    var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
-  const  backupSettings = loadingHelper.getValues();
-  loadingHelper.setValues(haltFormulas);
-  try {
-    let rangeList =
-    {
-      sde_group_category : "SDE_invGroups",
-      sde_activity_products : "SDE_industryActivityProducts",
+                  sde_activity_products : "SDE_industryActivityProducts",
         sde_typeid_name : "SDE_invTypes" ,
         sde_packaged_volume : "SDE_invVolumes"
 
@@ -463,80 +324,22 @@ function testNamedRangeCreate()
   }
 }
 
-
-
-/**
- *Sets a Named Range
- * "sde_typeid_name", A:A,LastCol:LastRow
- *
- * @param {*} name
- * @param {*} options
- */
- function setNamedRange(rangeList)
-{
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
-      let sheets = ss.getSheets();
-      const errors = [];
-    //  SpreadsheetApp.flush();
-      Object.entries(rangeList).forEach(entry  => 
-        {
-          try{
-             //   SpreadsheetApp.flush();
-          const [key, value] = entry;
-         const sheet = ss.getSheetByName(value);
-         // FIXME: Exceptions cause by Range Locked in another Process.
-        const rangeToSet = sheet.getRange(1,1,sheet.getLastRow(),sheet.getLastColumn());
-         ss.setNamedRange( key,rangeToSet);    
-          } 
-          catch(e)
-          {
-            const [key, value] = entry;
-          errors.push( new Error("Named Range Error: " & key));
-           errors.push(e);
-          }    
-        })
-/*           if (errors.length > 0) {
-          throw new Error(errors.join()); 
-        }*/
-        sheets.forEach(sheet => {
-          const namedRanges = sheet.getNamedRanges();
-          namedRanges.forEach(nRange => {
-            console.log(`Name: ${nRange.getName()} range: ${nRange.getRange().getA1Notation()}`);
-          });
-        });
+function isNumber(value) {
+  return value !== undefined && value !== null && !isNaN(value);
 }
 
-
 /**
- * @param sheet Name of the tab to place the SDE data
- * @param csvFile Name of the file to download from Fuzworks
- * @param headers Optional Column Names to keep from the CSV Data while ignoring everything else. Defaults to Null (to grab everything)
- *
- * @class SdePage
+ * Constructor function for SdePage objects.
+ * @param {string} sheet - The name of the sheet to create or update.
+ * @param {string} csvFile - The name of the CSV file to download.
+ * @param {Array} headers - The headers to filter the CSV data. OPTIONAL
  */
-class SdePage {
-  constructor(sheet, csvFile, headers = null, backupRanges = null) {
-
+function SdePage(sheet, csvFile, headers) {
     this.sheet = sheet;
     this.backupRanges = null;
     this.csvFile = csvFile;
 
     if (headers != null) {
       this.headers = headers;
-      if (!Array.isArray(headers)) this.headers = [headers];
-    }
-
-    if (backupRanges != null) {
-      this.backupRanges = backupRanges;
-      if (!Array.isArray(backupRanges)) this.backupRanges = [backupRanges];
-    }
-
-  }
 }
-
-class SDEError extends Error {
-  constructor(message = "", ...args) {
-    super(message, ...args);
-    this.message = message + " has not yet been implemented.";
-  }
 }
