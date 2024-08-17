@@ -2,40 +2,41 @@
  * Version: 1.05
  * Author: CJ Kilman
  * Free to use and modify, Do not remove header.
-  *
+ * 
  * This script imports SDE_invTypes data from Fuzworks CSV files into a Google Spreadsheet.
  * It includes functions for handling CSV data, managing spreadsheet sheets, and setting named ranges.
-  */
-
-/**
- * Sample function to import SDE_invTypes from Fuzworks CSV files.
- * Copy this function to a file like "main.js. This helps upgrades by replacing this file."
  */
-/*
-/**
-function importSDE() {
-  // Get the user interface for the current spreadsheet.
-  const ui = SpreadsheetApp.getUi();
 
-  // Display an alert to inform the user about the update process.
-  const response = ui.alert('Updating the SDE',
-    'Updating the SDE may take several minutes. Do not close the window, or you will have to restart. Continue?',
+/**
+ * SED Loader : Runs each SDE update
+ * Sample Function
+ * It is recodmended to copy this to a different script such as Main.js. Some place to keep your 
+ * configeration stuff safe as this file is subject to modifcations.
+ */
+/** function importSDE()
+{
+    // Display an alert box with a title, message, input field, and "Yes" and "No" buttons. The
+    // user can also close the dialog by clicking the close button in its title bar.
+    var ui = SpreadsheetApp.getUi();
+
+    var response = ui.alert('Updating the SDE', 
+        'Updating the SDE may take several minutes. In the meantime do not close the window otherwise you will have to restart. Continue?',
         ui.ButtonSet.YES_NO);
 
-  // If the user agrees to continue, proceed with the import.
+        
+    // Process the user's response.
     if (response == ui.Button.YES) {
 
-      // Lock Formulas from running 
-      // sample foromula with lock "=If(Utility!B3 <> 1,, IF(setting_iscorp = False, "", corporations_corporation_assets(setting_director)) )"
+      // Lock Formulas from running
       const haltFormulas = [[0,0]];
 
-    const thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-    const loadingHelper = thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
-    const backupSettings = loadingHelper.getValues();
+      var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
+      var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
+      const  backupSettings = loadingHelper.getValues();
       loadingHelper.setValues(haltFormulas); 
 
-    try {
-      // Define the SDE pages to import, specifying the sheet name, CSV file, and required columns which are OPTIONAL.
+      try{
+
     const sdePages = [
     /**   new SdePage(
           "SDE_sample",
@@ -43,17 +44,17 @@ function importSDE() {
           [ "sample headers", "These are not required",]
           ),*
         new SdePage(
-        "SDE_invTypes", //sheet tab title
-        "invTypes.csv", // fuzworks file name
+        "SDE_invTypes",
+        "invTypes.csv",
           /** Optional headers,  
            * invTypes is 100+ megabytes. Select Collumns needed to help it laod faster. 
-
           [ "typeID","groupID","typeName","mass","volume"]
           ),
       ];
       sdePages.forEach(buildSDEs);
-    } finally {
-      // Restore the original formula settings.
+        }
+    finally{
+          // release lock
           loadingHelper.setValues(backupSettings); 
         }
 
@@ -77,13 +78,10 @@ function buildSDEs(sdePage) {
   const csvContent = downloadTextData(sdePage.csvFile);
   const csvData = CSVToArray(csvContent, ",", sdePage.headers);
 
-
   try {
-
     const activeSheet = SpreadsheetApp.getActiveSpreadsheet();
-    var workSheet = activeSheet.getSheetByName(sdePage.sheet);
-
-    //Bacukup Ranges
+    let workSheet = activeSheet.getSheetByName(sdePage.sheet);
+//Bacukup Ranges
     var backedupValues = [];
     if (sdePage.backupRanges != null)
     {
@@ -112,13 +110,20 @@ function buildSDEs(sdePage) {
         backedupValues.push(row);
       }
     }
-
+    // Create or clear the sheet for new data.
     workSheet = createOrClearSdeSheet(sdePage.sheet);
 
     // Write the CSV data to the sheet.
     const destinationRange = workSheet.getRange(1, 1, csvData.length, csvData[0].length);
     destinationRange.setValues(csvData);
 
+    //restore Backups
+    if (sdePage.backupRanges != null)
+      for (var i = 0; i < sdePage.backupRanges.length; i++) {
+        var backupRange = workSheet.getRange(sdePage.backupRanges[i]);
+        backupRange.setValues(backedupValues[i]);
+
+      }
     // Remove any blank columns or rows.
     deleteBlankColumnsAndColumns(workSheet);
   } catch (e) {
@@ -159,8 +164,8 @@ function createOrClearSdeSheet(sheetName) {
   if (workSheet) {
     workSheet.clearContents();
   } else {
-  workSheet = activeSheet.insertSheet();
-  workSheet.setName(sheetName);
+    workSheet = activeSheet.insertSheet();
+    workSheet.setName(sheetName);
   }
 
   console.timeEnd("createOrClearSdeSheet({sheetName:" + sheetName + "})");
@@ -185,11 +190,8 @@ function deleteBlankColumnsAndColumns(workSheet) {
   if (columnsToRemove > 0) {
     workSheet.deleteColumns(lastColumn + 1, columnsToRemove);
   }
-  if (lastRows < rowsReset) { //save 2 columns on a new sheet
-    lastRows = rowsReset;
-  }
-  if (maxRows - lastRows != 0) {
-    workSheet.deleteRows(lastRows + 1, maxRows - lastRows);
+  if (rowsToRemove > 0) {
+    workSheet.deleteRows(lastRow + 1, rowsToRemove);
   }
 }
 
@@ -217,49 +219,44 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 
   try {
     while ((arrMatches = objPattern.exec(strData.trim()))) {
-    columnIndex++;
+      columnIndex++;
 
       const strMatchedDelimiter = arrMatches[1];
 
       if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
-      arrData.push([]);
-      columnIndex = 0;
-
-    }
+        arrData.push([]);
+        columnIndex = 0;
+      }
 
       let strMatchedValue;
 
-    // Now that we have our delimiter out of the way,
-    // let's check to see which kind of value we
-    // captured (quoted or unquoted).
-    if (arrMatches[2]) {
+      if (arrMatches[2]) {
         strMatchedValue = arrMatches[2].replace(/""/g, '"');
       } else {
-      strMatchedValue = arrMatches[3];
-    }
+        strMatchedValue = arrMatches[3];
+      }
 
-    let saveColumn = false;
-    if (!skipHeaders) {
+      let saveColumn = false;
+      if (!skipHeaders) {
         if (headersIndex.includes(columnIndex)) {
-        saveColumn = true;
+          saveColumn = true;
+        }
+        if (headers.includes(strMatchedValue)) {
+          headersIndex.push(columnIndex);
+          saveColumn = true;
+        }
       }
-      //row 0 assume is headers
-      if (headers.indexOf(strMatchedValue) > -1) {
-        headersIndex.push(columnIndex);
-        saveColumn = true;
-      }
-    }
 
-    if (skipHeaders || saveColumn) {
+      if (skipHeaders || saveColumn) {
         if (Number.isInteger(strMatchedValue)) {
           arrData[arrData.length - 1].push(parseInt(strMatchedValue));
         } else if (isNumber(strMatchedValue)) {
-        arrData[arrData.length - 1].push(parseFloat(strMatchedValue));
+          arrData[arrData.length - 1].push(parseFloat(strMatchedValue));
         } else {
           let value = strMatchedValue.replace(gREGEX, "''$1");
           arrData[arrData.length - 1].push(value.trim());
-          }
         }
+      }
     }
   } catch (e) {
     throw e;
@@ -267,80 +264,39 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 
   return arrData;
 }
-function testSDE() {
 
-  // Lock Formulas from running
-  const haltFormulas = [[0,0]];
-
-  var thisSpreadSheet = SpreadsheetApp.getActiveSpreadsheet();
-  var loadingHelper= thisSpreadSheet.getRangeByName("'Utility'!B3:C3");
-  const  backupSettings = loadingHelper.getValues();
-  loadingHelper.setValues(haltFormulas);
-  try {
-
-            const sdePages = [
-                new SdePage(
-                "SDE_invTypes",
-                "invTypes.csv",
-                  // Optional headers,  
-                  // invTypes is 100+ megabytes. Select columns needed to help it load faster. 
-                  [ "typeID","groupID","typeName","volume"]
-                  ),
-                new SdePage(
-                "SDE_industryActivityProducts",
-                "industryActivityProducts.csv",
-                  []
-                  ),
-                new SdePage(
-                "SDE_industryActivityMaterials",
-                "industryActivityMaterials.csv",
-                  []
-                  ),
-                new SdePage(
-                "SDE_invVolumes",
-                "invVolumes.csv",
-                  []
-                  ),
-                new SdePage(
-                "SDE_invGroups",
-                "invGroups.csv",
-                  ["groupID", "categoryID", "groupName"]
-                  )
-              ];
-               sdePages.forEach(buildSDEs);
-          let rangeList =
-          {
-            sde_group_category :"SDE_invGroups",
-                  sde_activity_products : "SDE_industryActivityProducts",
-        sde_typeid_name : "SDE_invTypes" ,
-        sde_packaged_volume : "SDE_invVolumes"
-
-    }
-    setNamedRange(rangeList);
-
-      }
-  finally {
-    // release lock
-    loadingHelper.setValues(backupSettings);
-  }
-}
-
+/**
+ * Checks if a value is a number.
+ * @param {*} value - The value to check.
+ * @returns {boolean} - True if the value is a number, false otherwise.
+ */
 function isNumber(value) {
   return value !== undefined && value !== null && !isNaN(value);
 }
 
 /**
- * Constructor function for SdePage objects.
- * @param {string} sheet - The name of the sheet to create or update.
- * @param {string} csvFile - The name of the CSV file to download.
- * @param {Array} headers - The headers to filter the CSV data. OPTIONAL
+ * @param sheet Name of the tab to place the SDE data
+ * @param csvFile Name of the file to download from Fuzworks
+ * @param headers Optional Column Names to keep from the CSV Data while ignoring everything else. Defaults to Null (to grab everything)
+ *
+ * @class SdePage
  */
-function SdePage(sheet, csvFile, headers) {
+class SdePage {
+  constructor(sheet, csvFile, headers = null, backupRanges = null) {
+
     this.sheet = sheet;
     this.backupRanges = null;
     this.csvFile = csvFile;
 
     if (headers != null) {
       this.headers = headers;
-}
+      if (!Array.isArray(headers)) this.headers = [headers];
+    }
+
+    if (backupRanges != null) {
+      this.backupRanges = backupRanges;
+      if (!Array.isArray(backupRanges)) this.backupRanges = [backupRanges];
+    }
+
+  }
 }
