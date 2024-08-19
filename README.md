@@ -48,7 +48,8 @@ function importSDE() {
         /** Optional headers,
          * invTypes is 100+ megabytes. Select Columns needed to help it laod faster.
          */
-        ["typeID", "groupID", "typeName", "mass", "volume"]
+        ["typeID", "groupID", "typeName", "mass", "volume"],
+        false // turns off published filtering DEFAULT: publishedOnly = true
       ),
         new SdePage(
         "SDE_industryActivityMaterials",
