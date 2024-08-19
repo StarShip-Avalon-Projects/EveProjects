@@ -49,6 +49,7 @@ function importSDE() {
          * invTypes is 100+ megabytes. Select Columns needed to help it laod faster.
          */
         ["typeID", "groupID", "typeName", "mass", "volume"],
+        , // empty ranges
         false // turns off published filtering DEFAULT: publishedOnly = true
       ),
         new SdePage(
