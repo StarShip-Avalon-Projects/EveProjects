@@ -76,11 +76,11 @@ function buildSDEs(sdePage) {
 
   // Download CSV content and convert it to a 2D array.
   const csvContent = downloadTextData(sdePage.csvFile);
-      let workSheet = activeSheet.getSheetByName(sdePage.sheet);
-        const csvData = CSVToArray(csvContent, ",", sdePage.headers,workSheet.publishedOnly);
+  const activeSheet = SpreadsheetApp.getActiveSpreadsheet();
+  let workSheet = activeSheet.getSheetByName(sdePage.sheet);
+  const csvData = CSVToArray(csvContent, ",", sdePage.headers,workSheet.publishedOnly);
 
   try {
-    const activeSheet = SpreadsheetApp.getActiveSpreadsheet();
 
 //Bacukup Ranges
     var backedupValues = [];
@@ -221,7 +221,7 @@ function CSVToArray(strData, strDelimiter = ",", headers = null, publishedOnly =
   let row =[];
   let arrMatches = null;
   let columnIndex = -1;
-  let skipRow = true;
+  let skipRow = false;
   let publishIdx = null;
   try {
     while ((arrMatches = objPattern.exec(strData.trim()))) {
@@ -231,7 +231,7 @@ function CSVToArray(strData, strDelimiter = ",", headers = null, publishedOnly =
 
       //end of line/row
       if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
-       if(!skipRow || !publishedOnly) {
+       if( !skipRow || !publishedOnly || arrData.length == 0 ) {
           arrData.push(row);   
         }
         row = [];
