@@ -1,5 +1,5 @@
 /**
- * Version: 1.05
+ * Version: 1.06
  * Author: CJ Kilman
  * Free to use and modify, Do not remove header.
  * 
@@ -76,11 +76,12 @@ function buildSDEs(sdePage) {
 
   // Download CSV content and convert it to a 2D array.
   const csvContent = downloadTextData(sdePage.csvFile);
-  const csvData = CSVToArray(csvContent, ",", sdePage.headers);
+      let workSheet = activeSheet.getSheetByName(sdePage.sheet);
+        const csvData = CSVToArray(csvContent, ",", sdePage.headers,workSheet.publishedOnly);
 
   try {
     const activeSheet = SpreadsheetApp.getActiveSpreadsheet();
-    let workSheet = activeSheet.getSheetByName(sdePage.sheet);
+
 //Bacukup Ranges
     var backedupValues = [];
     if (sdePage.backupRanges != null)
@@ -195,14 +196,17 @@ function deleteBlankColumnsAndColumns(workSheet) {
   }
 }
 
-/**
+/**a
  * Parses a CSV string into a 2D array.
  * @param {string} strData - The CSV string to parse.
  * @param {string} strDelimiter - The delimiter used in the CSV string.
  * @param {Array} headers - Array of headers to filter columns.
+ * @param {Boolean} publishedOnly - filters out non published items if this column exists.
  * @returns {Array} - The parsed 2D array.
  */
-function CSVToArray(strData, strDelimiter = ",", headers = null) {
+function CSVToArray(strData, strDelimiter = ",", headers = null, publishedOnly = true) {
+    console.time("CSVToArray(strData , strDelimiter = \""+strDelimiter+"\", headers = "+headers+")");
+
   const skipHeaders = !headers || !headers.length || !headers[0];
   let headersIndex = [];
   strDelimiter = strDelimiter || ",";
@@ -213,20 +217,28 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
   );
 
   const gREGEX = /^'+(.*)$/gm;
-  let arrData = [[]];
+  let arrData = [];
+  let row =[];
   let arrMatches = null;
   let columnIndex = -1;
-
+  let skipRow = true;
+  let publishIdx = null;
   try {
     while ((arrMatches = objPattern.exec(strData.trim()))) {
       columnIndex++;
 
       const strMatchedDelimiter = arrMatches[1];
 
+      //end of line/row
       if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
-        arrData.push([]);
+       if(!skipRow || !publishedOnly) {
+          arrData.push(row);   
+        }
+        row = [];
         columnIndex = 0;
+        skipRow = false;
       }
+    
 
       let strMatchedValue;
 
@@ -235,6 +247,19 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
       } else {
         strMatchedValue = arrMatches[3];
       }
+
+
+      if ( strMatchedValue == "published" && !publishIdx) {
+        publishIdx = columnIndex;
+        console.log("strMatchedValue\'"+strMatchedValue+"\' == \"published\" && !publishIdx");
+      }
+    
+      if (!skipRow && publishIdx == columnIndex && parseInt(strMatchedValue) != 1) {
+        skipRow = true;
+        // console.log("publishIdx \'"+publishIdx+"\"= columnIndex \'"+columnIndex+"\' && parseInt(strMatchedValue \'"+strMatchedValue+"\')"+parseInt(strMatchedValue));
+      }
+
+
 
       let saveColumn = false;
       if (!skipHeaders) {
@@ -249,19 +274,19 @@ function CSVToArray(strData, strDelimiter = ",", headers = null) {
 
       if (skipHeaders || saveColumn) {
         if (Number.isInteger(strMatchedValue)) {
-          arrData[arrData.length - 1].push(parseInt(strMatchedValue));
+          row.push(parseInt(strMatchedValue));
         } else if (isNumber(strMatchedValue)) {
-          arrData[arrData.length - 1].push(parseFloat(strMatchedValue));
+          row.push(parseFloat(strMatchedValue));
         } else {
           let value = strMatchedValue.replace(gREGEX, "''$1");
-          arrData[arrData.length - 1].push(value.trim());
+          row.push(value.trim());
         }
       }
     }
   } catch (e) {
     throw e;
   }
-
+    console.timeEnd("CSVToArray(strData , strDelimiter = \""+strDelimiter+"\", headers = "+headers+")");
   return arrData;
 }
 
@@ -282,12 +307,12 @@ function isNumber(value) {
  * @class SdePage
  */
 class SdePage {
-  constructor(sheet, csvFile, headers = null, backupRanges = null) {
+  constructor(sheet, csvFile, headers = null, backupRanges = null, publishedOnly=true) {
 
     this.sheet = sheet;
     this.backupRanges = null;
     this.csvFile = csvFile;
-
+    this.publishedOnly = false;
     if (headers != null) {
       this.headers = headers;
       if (!Array.isArray(headers)) this.headers = [headers];
@@ -297,6 +322,8 @@ class SdePage {
       this.backupRanges = backupRanges;
       if (!Array.isArray(backupRanges)) this.backupRanges = [backupRanges];
     }
-
+    if(!publishedOnly) {
+      this.publishedOnly = publishedOnly;
+    }
   }
 }
