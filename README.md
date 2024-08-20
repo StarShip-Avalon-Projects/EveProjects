@@ -21,6 +21,10 @@ function onOpen() {
     .addItem("Update SDE Data", "importSDE")
     .addToUi();
 }
+
+/**
+* Demo function defining configurations to run through buildSDEs(page)
+*/
 function importSDE() {
   // Display an alert box with a title, message, input field, and "Yes" and "No" buttons. The
   // user can also close the dialog by clicking the close button in its title bar.
@@ -58,7 +62,11 @@ function importSDE() {
           [],
           "'SDE_industryActivityMaterials'!E1:E2"), // ex: E2 =IF(Utility!C3 <>1,,ARRAYFORMULA(IFNA(IF(IFS(B2:B=1,TRUE,B2:B=11,true)=false,0,SUMIF('ESI Adjusted Price'!C:C,C2:C,'ESI Adjusted Price'!A:A)*D2:D),0)))
     ];
+
+// Import sde csv data with the defined Configurations defined above.
     sdePages.forEach((page) => buildSDEs(page));
+
+
   } else if (response == ui.Button.NO) {
     ui.alert("SDE unchanged.");
   } else {
