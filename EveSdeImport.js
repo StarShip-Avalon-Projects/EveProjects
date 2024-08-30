@@ -78,7 +78,7 @@ function buildSDEs(sdePage) {
   const csvContent = downloadTextData(sdePage.csvFile);
   const activeSheet = SpreadsheetApp.getActiveSpreadsheet();
   let workSheet = activeSheet.getSheetByName(sdePage.sheet);
-  const csvData = CSVToArray(csvContent, ",", sdePage.headers,workSheet.publishedOnly);
+  const csvData = CSVToArray(csvContent, ",", sdePage.headers,sdePage.publishedOnly);
 
   try {
 
@@ -307,7 +307,7 @@ function isNumber(value) {
  * @class SdePage
  */
 class SdePage {
-  constructor(sheet, csvFile, headers = null, backupRanges = null, publishedOnly=true) {
+  constructor(sheet, csvFile, headers = null, backupRanges = null, publishedOnly = true) {
 
     this.sheet = sheet;
     this.backupRanges = null;
@@ -322,7 +322,9 @@ class SdePage {
       this.backupRanges = backupRanges;
       if (!Array.isArray(backupRanges)) this.backupRanges = [backupRanges];
     }
-    if(!publishedOnly) {
+    if ( publishedOnly == null){
+      this.publishedOnly = false;
+    } else if(!publishedOnly) {
       this.publishedOnly = publishedOnly;
     }
   }
