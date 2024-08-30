@@ -1,6 +1,7 @@
 /**
- * Version: 1.06
+ * Version: 1.07
  * Author: CJ Kilman
+ * GitHub Source https://github.com/StarShip-Avalon-Projects/EveProjects
  * Free to use and modify, Do not remove header.
  * 
  * This script imports SDE_invTypes data from Fuzworks CSV files into a Google Spreadsheet.
@@ -323,8 +324,8 @@ class SdePage {
       if (!Array.isArray(backupRanges)) this.backupRanges = [backupRanges];
     }
     if ( publishedOnly == null){
-      this.publishedOnly = false;
-    } else if(!publishedOnly) {
+      this.publishedOnly = true;
+    } else {
       this.publishedOnly = publishedOnly;
     }
   }
